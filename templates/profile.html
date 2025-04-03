@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Profile - Weather App</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/profile.css">
+</head>
+<body class="profile-page">
+<div class="container">
+  <h1 class="white-text">Weather Forecast</h1>
+
+  <div class="profile-box transparent-bg">
+    <h2 class="profile-title white-text">Your Profile</h2>
+
+    {{ if .error }}
+    <div class="error-message">{{ .error }}</div>
+    {{ end }}
+
+    {{ if .success }}
+    <div class="success-message">{{ .success }}</div>
+    {{ end }}
+
+    <!-- Profile icon - first letter of username -->
+    <div class="profile-icon-container">
+      <div class="profile-icon">
+        {{ if .user.Username }}
+        {{ slice .user.Username 0 1 | toUpper }}
+        {{ else }}
+        U
+        {{ end }}
+      </div>
+    </div>
+
+    <form action="/profile" method="post">
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input
+                type="text"
+                id="username"
+                value="{{ .user.Username }}"
+                class="form-input transparent-input"
+                readonly
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ .user.Email }}"
+                class="form-input transparent-input"
+                required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="home_city" class="form-label">Home City</label>
+        <input
+                type="text"
+                id="home_city"
+                name="home_city"
+                value="{{ .user.HomeCity }}"
+                placeholder="e.g. London, New York, Tokyo"
+                class="form-input transparent-input"
+        >
+        <div class="help-text">This will be used to show weather on login</div>
+      </div>
+
+      <!-- Weather Notifications -->
+      <h3 class="section-title white-text">Weather Notifications</h3>
+      <div class="checkbox-wrapper">
+        <input
+                type="checkbox"
+                id="notifications_enabled"
+                name="notifications_enabled"
+                class="form-checkbox"
+                {{ if .user.NotificationsEnabled }}checked{{ end }}
+        >
+        <label for="notifications_enabled" class="checkbox-label">Enable weather alerts via email</label>
+      </div>
+
+      <h3 class="section-title white-text">Alert Threshold</h3>
+      <div class="form-group">
+        <select id="alert_threshold" name="alert_threshold" class="form-select transparent-input">
+          <option value="severe" {{ if eq .user.AlertThreshold "severe" }}selected{{ end }}>Severe conditions only</option>
+          <option value="moderate" {{ if eq .user.AlertThreshold "moderate" }}selected{{ end }}>Moderate and severe conditions</option>
+          <option value="all" {{ if eq .user.AlertThreshold "all" }}selected{{ end }}>All weather updates</option>
+        </select>
+        <div class="help-text">We'll send alerts to {{ .user.Email }} based on this preference</div>
+      </div>
+
+      <h3 class="section-title white-text">Change Password</h3>
+
+      <div class="form-group">
+        <label for="current_password" class="form-label">Current Password</label>
+        <input
+                type="password"
+                id="current_password"
+                name="current_password"
+                class="form-input transparent-input"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="new_password" class="form-label">New Password</label>
+        <input
+                type="password"
+                id="new_password"
+                name="new_password"
+                class="form-input transparent-input"
+        >
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="transparent-button update-btn">Update Profile</button>
+      </div>
+    </form>
+
+    <div class="navigation-links">
+      <a href="/" class="transparent-button back-button">← Back to home page</a>
+      <a href="/logout" class="transparent-button logout-button">Logout</a>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoWeather - Your Personal Weather Station</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --text-color: #333;
+      --light-text: #fff;
+      --button-color: #3498db;
+      --card-bg: rgba(255, 255, 255, 0.2);
+      --input-bg: rgba(255, 255, 255, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #b6d0e2 0%, #97c1e2 50%, #8ab4d8 100%);
+      background-image:
+              linear-gradient(135deg, #b6d0e2 0%, #97c1e2 50%, #8ab4d8 100%),
+              radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%),
+              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%);
+      position: relative;
+      overflow-x: hidden;
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Subtle cloud patterns */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30,50 Q40,40 50,50 Q60,60 70,50' stroke='rgba(255,255,255,0.05)' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    /* Light beam effect */
+    body::after {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+      opacity: 0.5;
+      z-index: -1;
+      animation: float 25s infinite alternate ease-in-out;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(calc(100vw - 100px), calc(100vh - 100px));
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      text-decoration: none;
+      color: var(--text-color);
+    }
+
+    .logo i {
+      margin-right: 10px;
+      color: #f1c40f;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .auth-button {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: var(--text-color);
+      padding: 10px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .auth-button:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Profile Circle Styles */
+    .profile-button {
+      text-decoration: none;
+    }
+
+    .profile-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .profile-circle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--text-color);
+      position: relative;
+    }
+
+    .title::after {
+      content: '';
+      display: block;
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #f1c40f, transparent);
+      margin: 10px auto;
+    }
+
+    .search-container {
+      text-align: center;
+      margin: 30px 0;
+      position: relative;
+      max-width: 600px;
+      margin: 30px auto;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 15px 20px;
+      padding-right: 50px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-size: 18px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      outline: none;
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    .search-bar:focus {
+      background-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .location-button {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    .location-button:hover {
+      color: var(--button-color);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .content-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 50px;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .left-content {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .right-content {
+      flex: 1;
+      min-width: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tagline {
+      margin-bottom: 40px;
+    }
+
+    .tagline h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .tagline p {
+      font-size: 24px;
+      line-height: 1.4;
+      margin-bottom: 30px;
+      color: #444;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .cta-button:active {
+      transform: translateY(-1px);
+    }
+
+    .weather-icon-container {
+      text-align: center;
+      margin: 40px 0;
+      position: relative;
+    }
+
+    .weather-icon-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    .weather-icon {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+      filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+      transition: all 0.3s ease;
+    }
+
+    .weather-icon:hover {
+      transform: translateY(-5px);
+    }
+
+    .weather-condition {
+      text-align: center;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 16px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .weather-types {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .weather-type {
+      text-align: center;
+      flex: 1;
+      transition: all 0.3s ease;
+    }
+
+    .weather-type:hover {
+      transform: translateY(-5px);
+    }
+
+    .weather-type img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 5px;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+    }
+
+    .weather-type span {
+      display: block;
+      font-size: 12px;
+      color: #555;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .phone-mockup {
+      position: relative;
+      max-width: 300px;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+      transition: all 0.5s ease;
+    }
+
+    .phone-mockup:hover {
+      transform: translateY(-10px) rotate(2deg);
+    }
+
+    .phone-mockup img {
+      width: 100%;
+      height: auto;
+      border-radius: 30px;
+    }
+
+    .feature-tag {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #ff6b6b;
+      font-weight: bold;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .tag-top {
+      top: 30px;
+      right: -60px;
+      animation-delay: 0s;
+    }
+
+    .tag-middle {
+      top: 50%;
+      left: -100px;
+      transform: translateY(-50%);
+      animation-delay: 0.5s;
+    }
+
+    .tag-bottom {
+      bottom: 50px;
+      right: -60px;
+      animation-delay: 1s;
+    }
+
+    /* Location Permission Alert */
+    .location-alert {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      text-align: center;
+      display: none;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .location-alert.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .location-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .location-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .allow-button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+    }
+
+    .allow-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .deny-button {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+
+    .deny-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Loading Indicator */
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+    }
+
+    .loading.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(52, 152, 219, 0.3);
+      border-radius: 50%;
+      border-top-color: #3498db;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .content-container {
+        flex-direction: column;
+      }
+
+      .right-content {
+        order: -1;
+      }
+
+      .phone-mockup {
+        margin: 0 auto 40px;
+      }
+
+      .feature-tag {
+        position: static;
+        display: inline-block;
+        margin: 10px 5px;
+        transform: none !important;
+        animation: none;
+      }
+
+      .phone-mockup:hover {
+        transform: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 15px;
+      }
+
+      .title {
+        font-size: 28px;
+      }
+
+      .tagline h2 {
+        font-size: 24px;
+      }
+
+      .tagline p {
+        font-size: 20px;
+      }
+
+      .auth-button {
+        padding: 8px 15px;
+        font-size: 14px;
+      }
+
+      .weather-icon {
+        width: 120px;
+        height: 120px;
+      }
+
+      .weather-types {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .weather-type {
+        flex: 0 0 calc(20% - 10px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .weather-type {
+        flex: 0 0 calc(33% - 10px);
+      }
+
+      .logo span {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+  <a href="/" class="logo">
+    <i class="fas fa-cloud-sun"></i>
+    <span>GoWeather</span>
+  </a>
+  <div class="auth-buttons">
+    {{ if .User }}
+    <a href="/profile" class="profile-button">
+      <div class="profile-circle">
+        {{ if .User.Username }}
+        <span>{{ slice .User.Username 0 1 | toUpper }}</span>
+        {{ else }}
+        <span>U</span>
+        {{ end }}
+      </div>
+    </a>
+    {{ else }}
+    <a href="/login" class="auth-button">Login</a>
+    <a href="/signup" class="auth-button">Signup</a>
+    {{ end }}
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <h1 class="title">Weather Forecast</h1>
+
+  <!-- Location Permission Alert -->
+  <div id="locationAlert" class="location-alert">
+    <p><strong>GoWeather</strong> wants to access your location to show weather information for your area.</p>
+    <div class="location-buttons">
+      <button id="allowLocation" class="allow-button">Allow</button>
+      <button id="denyLocation" class="deny-button">Deny</button>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator" class="loading">
+    <div class="spinner"></div>
+    <span>Getting weather for your location...</span>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <form id="searchForm" action="/weather" method="GET">
+      <input type="text" name="city" id="cityInput" class="search-bar" placeholder="Enter your place" required>
+      <button type="button" id="getLocation" class="location-button" title="Use your current location">
+        <i class="fas fa-location-arrow"></i>
+      </button>
+    </form>
+  </div>
+
+  <div class="content-container">
+    <div class="left-content">
+      <div class="tagline">
+        <h2>Go Language</h2>
+        <p>Your personal weather station, right in your pocket.</p>
+        <a href="/weather" class="cta-button">Get Started</a>
+      </div>
+
+      <div class="weather-icon-container">
+        <div class="weather-icon-bg"></div>
+        <img src="https://cdn-icons-png.flaticon.com/512/1146/1146869.png" alt="Partly Cloudy" class="weather-icon">
+        <div class="weather-condition">Partly Cloudy</div>
+      </div>
+
+      <div class="weather-types">
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" alt="Clear">
+          <span>Clear</span>
+        </div>
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/1146/1146860.png" alt="Cloudy">
+          <span>Cloudy</span>
+        </div>
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/1146/1146858.png" alt="Rain">
+          <span>Rain</span>
+        </div>
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/1146/1146911.png" alt="Snow">
+          <span>Snow</span>
+        </div>
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/1146/1146859.png" alt="Storm">
+          <span>Storm</span>
+        </div>
+        <div class="weather-type">
+          <img src="https://cdn-icons-png.flaticon.com/512/1146/1146865.png" alt="Historical">
+          <span>Historical</span>
+          <a href="historical-comparison.html" onclick="window.open('/historical-comparison', '_self'); return false;" style="display:block; margin-top:5px; text-decoration:none; color:#3498db;">View</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-content">
+      <div class="phone-mockup">
+        <img src="../static/appbackgroundhomepage.jpg" alt="Phone with weather app">
+        <div class="feature-tag tag-top">Get Alerts on weather</div>
+        <div class="feature-tag tag-middle">Data at your fingertips</div>
+        <div class="feature-tag tag-bottom">Get Alerts on weather</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const cityInput = document.getElementById('cityInput');
+    const getLocationBtn = document.getElementById('getLocation');
+    const locationAlert = document.getElementById('locationAlert');
+    const allowLocationBtn = document.getElementById('allowLocation');
+    const denyLocationBtn = document.getElementById('denyLocation');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const historicalLink = document.getElementById('historicalLink');
+
+    // Add click handler for historical link to bypass server logic
+    if (historicalLink) {
+      historicalLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.replace('/historical-comparison');
+      });
+    }
+
+    // Check if we should skip location check (if coming from location options page)
+    const urlParams = new URLSearchParams(window.location.search);
+    const skipLocationCheck = urlParams.get('from') === 'location_options';
+
+    // Check if geolocation is supported by the browser
+    if (!navigator.geolocation) {
+      console.log("Geolocation is not supported by this browser.");
+      getLocationBtn.style.display = 'none';
+    }
+
+    // Immediately request location when page loads, but only if not redirected from location options
+    if (!skipLocationCheck) {
+      requestLocationPermission();
+    }
+
+    // Location button click handler
+    getLocationBtn.addEventListener('click', function() {
+      requestLocationPermission();
+    });
+
+    // Allow location button click handler
+    allowLocationBtn.addEventListener('click', function() {
+      locationAlert.classList.remove('show');
+      getLocationWeather();
+    });
+
+    // Deny location button click handler
+    denyLocationBtn.addEventListener('click', function() {
+      locationAlert.classList.remove('show');
+      // User denied location, do nothing
+    });
+
+    // Form submission with Enter key
+    cityInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        searchForm.submit();
+      }
+    });
+
+    // Function to request location permission
+    function requestLocationPermission() {
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' })
+                .then(function(permissionStatus) {
+                  if (permissionStatus.state === 'granted') {
+                    // Permission already granted, get location weather
+                    getLocationWeather();
+                  } else if (permissionStatus.state === 'prompt') {
+                    // Show our custom permission dialog
+                    locationAlert.classList.add('show');
+                  } else {
+                    // Permission denied previously
+                    console.log("Geolocation permission denied.");
+                  }
+                });
+      } else {
+        // Older browsers - just try to get location
+        getLocationWeather();
+      }
+    }
+
+    // Function to get weather for current location
+    function getLocationWeather() {
+      loadingIndicator.classList.add('show');
+
+      navigator.geolocation.getCurrentPosition(
+              // Success callback
+              function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                // Redirect to location options page with coordinates
+                window.location.href = `/weather?lat=${latitude}&lon=${longitude}&options=true`;
+              },
+              // Error callback
+              function(error) {
+                loadingIndicator.classList.remove('show');
+
+                console.error("Error getting location:", error.message);
+
+                // Show an error message based on the error code
+                let errorMessage = "";
+                switch(error.code) {
+                  case error.PERMISSION_DENIED:
+                    errorMessage = "Location access was denied by the user.";
+                    break;
+                  case error.POSITION_UNAVAILABLE:
+                    errorMessage = "Location information is unavailable.";
+                    break;
+                  case error.TIMEOUT:
+                    errorMessage = "The request to get location timed out.";
+                    break;
+                  case error.UNKNOWN_ERROR:
+                    errorMessage = "An unknown error occurred.";
+                    break;
+                }
+
+                alert("Could not get your location: " + errorMessage);
+              },
+              // Options
+              {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              }
+      );
+    }
+  });
+</script>
+</body>
+</html>

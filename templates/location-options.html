@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Location - GoWeather</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #c4d7e9;
+            background-image: linear-gradient(135deg, #c4d7e9 0%, #a7c5e3 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: #f1c40f;
+        }
+
+        .auth-buttons a {
+            padding: 8px 15px;
+            margin-left: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .auth-buttons a:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        p.description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .location-options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .location-card {
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .location-card:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-info {
+            flex: 1;
+        }
+
+        .location-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .location-detail {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .distance {
+            font-weight: bold;
+            color: #3498db;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .search-form {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: none;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-button {
+            padding: 12px 20px;
+            margin-left: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .search-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <a href="/" class="logo">
+        <i class="fas fa-cloud-sun"></i>
+        <span>GoWeather</span>
+    </a>
+    <div class="auth-buttons">
+        {{if .User}}
+        <span>Welcome, {{.User.Name}}</span>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Logout</a>
+        {{else}}
+        <a href="/login">Login</a>
+        <a href="/signup">Sign Up</a>
+        {{end}}
+    </div>
+</div>
+
+<div class="container">
+    <h1>Select Your Location</h1>
+    <p class="description">
+        We found multiple locations near you. Please select the one that best matches your location
+        to get accurate weather information.
+    </p>
+
+    <div class="location-options">
+        {{range .locations}}
+        <a href="/weather?lat={{.Lat}}&lon={{.Lon}}" class="location-card">
+            <div class="location-info">
+                <div class="location-name">{{.Name}}</div>
+                <div class="location-detail">
+                    {{if .State}}{{.State}}, {{end}}{{.Country}}
+                </div>
+            </div>
+            <div class="distance">
+            {{if eq .Distance 0.0}}
+            Current
+            {{else if lt .Distance 15.0}}
+            In City
+            {{else}}
+            {{.Distance}} km
+            {{end}}
+        </div>
+
+        </a>
+        {{end}}
+    </div>
+
+    <div class="search-form">
+        <form action="/weather" method="GET">
+            <input type="text" name="city" class="search-input" placeholder="Or search for a specific city">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+
+    <a href="/?from=location_options" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+</div>
+</body>
+</html>

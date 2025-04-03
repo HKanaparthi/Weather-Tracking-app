@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Weather Comparison</title>
+    <link rel="stylesheet" href="/static/css/comparisionHistorical.css">
+
+</head>
+<body>
+<div class="container">
+    <header>
+        <nav>
+            <div class="logo">Weather App</div>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/weather">Current Weather</a></li>
+                <li><a href="/historical-comparison" class="active">Historical Comparison</a></li>
+                <li><a href="/compare">Compare Locations</a></li>
+                <li><a href="/activities">My Activities</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="#" id="logout-btn">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Debug information (only shown when debug=true) -->
+        {{if .debug}}
+        <div class="debug-info" style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+            <h3>Debug Information</h3>
+            <pre>{{.historicalData}}</pre>
+        </div>
+        {{end}}
+        <h1>Historical Weather Comparison</h1>
+        <p class="section-description">
+            Compare today's weather with historical data from the same location 1, 3, and 6 months ago.
+        </p>
+
+        <!-- Loading indicator -->
+        <div id="loading" class="loading-container hidden">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">Loading...</p>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-message" class="error-message hidden"></div>
+
+        <!-- Location selector -->
+        <div id="location-selector" class="location-selector">
+            <h2>Select a Location</h2>
+            <div class="location-search">
+                <input type="text" id="location-input" placeholder="Enter city name or address">
+                <button id="location-search-btn" class="btn primary">Search</button>
+            </div>
+            <div class="location-current">
+                <button id="current-location-btn" class="btn secondary">Use My Current Location</button>
+            </div>
+        </div>
+
+        <!-- Comparison section -->
+        <div id="comparison-section" class="comparison-section hidden">
+            <h2 id="location-title">Weather Comparison</h2>
+
+            <div class="weather-cards-container">
+                <div id="current-weather" class="weather-card-container"></div>
+                <div id="month-1-weather" class="weather-card-container"></div>
+                <div id="month-3-weather" class="weather-card-container"></div>
+                <div id="month-6-weather" class="weather-card-container"></div>
+            </div>
+
+            <div id="differences-container" class="differences-container hidden"></div>
+
+            <div class="actions">
+                <button id="change-location-btn" class="btn secondary">Change Location</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Weather App. All rights reserved.</p>
+    </footer>
+</div>
+
+<script src="/static/js/historical-comparison.js"></script>
+<script>
+    // Add event listener for logout button
+    document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    });
+
+    // Add event listener for change location button
+    document.getElementById('change-location-btn').addEventListener('click', function() {
+        document.getElementById('comparison-section').classList.add('hidden');
+        document.getElementById('location-selector').classList.remove('hidden');
+    });
+</script>
+</body>
+</html>

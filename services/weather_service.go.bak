@@ -1,0 +1,221 @@
+// services/weather_service.go
+package services
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	// Remove "time" import since it's not used in this file
+)
+
+// WeatherData struct holds the structure of the current weather response
+type WeatherData struct {
+	Name string `json:"name"`
+	Main struct {
+		Temp     float64 `json:"temp"`
+		Humidity int     `json:"humidity"`
+		Pressure int     `json:"pressure"`
+	} `json:"main"`
+	Weather []struct {
+		Description string `json:"description"`
+		Icon        string `json:"icon"`
+	} `json:"weather"`
+	Wind struct {
+		Speed float64 `json:"speed"`
+	} `json:"wind"`
+	Coord struct {
+		Lat float64 `json:"lat"`
+		Lon float64 `json:"lon"`
+	} `json:"coord"`
+}
+
+// HistoricalWeatherData represents historical weather data for comparison
+type HistoricalWeatherData struct {
+	City    string `json:"city"`
+	Current struct {
+		Temperature float64 `json:"temperature"`
+		FeelsLike   float64 `json:"feelsLike"`
+		Humidity    int     `json:"humidity"`
+		Pressure    int     `json:"pressure"`
+		Condition   string  `json:"condition"`
+		Icon        string  `json:"icon"`
+		WindSpeed   float64 `json:"windSpeed"`
+	} `json:"current"`
+	Historical map[string]struct {
+		Temperature float64 `json:"temperature"`
+		FeelsLike   float64 `json:"feelsLike"`
+		Humidity    int     `json:"humidity"`
+		Pressure    int     `json:"pressure"`
+		Condition   string  `json:"condition"`
+		Icon        string  `json:"icon"`
+		WindSpeed   float64 `json:"windSpeed"`
+	} `json:"historical"`
+}
+
+// WeatherService handles weather-related operations
+type WeatherService struct {
+	apiKey string
+}
+
+// NewWeatherService creates a new weather service
+func NewWeatherService(apiKey string) *WeatherService {
+	return &WeatherService{
+		apiKey: apiKey,
+	}
+}
+
+// GetAPIKey returns the API key for the service
+func (s *WeatherService) GetAPIKey() (string, error) {
+	return s.apiKey, nil
+}
+
+// GetWeatherByCoordinates fetches current weather data for the given coordinates
+func (s *WeatherService) GetWeatherByCoordinates(lat, lon float64) (*WeatherData, error) {
+	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=%s&units=metric", lat, lon, s.apiKey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		var errorResponse map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errorResponse)
+		return nil, fmt.Errorf("failed to fetch weather data: %s", resp.Status)
+	}
+
+	var data WeatherData
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+// GetHistoricalComparison fetches weather data for current time and historical periods
+func (s *WeatherService) GetHistoricalComparison(lat, lon float64) (*HistoricalWeatherData, error) {
+	// Get current weather data
+	current, err := s.GetWeatherByCoordinates(lat, lon)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch current weather: %v", err)
+	}
+
+	// Create the response structure
+	response := &HistoricalWeatherData{
+		City: current.Name,
+		Historical: make(map[string]struct {
+			Temperature float64 `json:"temperature"`
+			FeelsLike   float64 `json:"feelsLike"`
+			Humidity    int     `json:"humidity"`
+			Pressure    int     `json:"pressure"`
+			Condition   string  `json:"condition"`
+			Icon        string  `json:"icon"`
+			WindSpeed   float64 `json:"windSpeed"`
+		}),
+	}
+
+	// Set current weather data
+	response.Current.Temperature = current.Main.Temp
+	response.Current.FeelsLike = current.Main.Temp - 2 // Estimate feels like
+	response.Current.Humidity = current.Main.Humidity
+	response.Current.Pressure = current.Main.Pressure
+
+	if len(current.Weather) > 0 {
+		response.Current.Condition = current.Weather[0].Description
+		response.Current.Icon = current.Weather[0].Icon
+	} else {
+		response.Current.Condition = "Unknown"
+		response.Current.Icon = "01d" // Default icon
+	}
+
+	response.Current.WindSpeed = current.Wind.Speed
+
+	// For this example, we'll provide simulated historical data
+	// In a real implementation, you would fetch this from a historical weather API
+
+	// 1 month ago data (simulated)
+	response.Historical["1month"] = struct {
+		Temperature float64 `json:"temperature"`
+		FeelsLike   float64 `json:"feelsLike"`
+		Humidity    int     `json:"humidity"`
+		Pressure    int     `json:"pressure"`
+		Condition   string  `json:"condition"`
+		Icon        string  `json:"icon"`
+		WindSpeed   float64 `json:"windSpeed"`
+	}{
+		Temperature: current.Main.Temp - 3, // Example: 3 degrees colder a month ago
+		FeelsLike:   current.Main.Temp - 5,
+		Humidity:    current.Main.Humidity + 5,
+		Pressure:    current.Main.Pressure - 2,
+		Condition:   "Similar to today",
+		Icon:        "01d",
+		WindSpeed:   2.5,
+	}
+
+	// 3 months ago data (simulated)
+	response.Historical["3months"] = struct {
+		Temperature float64 `json:"temperature"`
+		FeelsLike   float64 `json:"feelsLike"`
+		Humidity    int     `json:"humidity"`
+		Pressure    int     `json:"pressure"`
+		Condition   string  `json:"condition"`
+		Icon        string  `json:"icon"`
+		WindSpeed   float64 `json:"windSpeed"`
+	}{
+		Temperature: current.Main.Temp - 6, // Example: 6 degrees colder 3 months ago
+		FeelsLike:   current.Main.Temp - 8,
+		Humidity:    current.Main.Humidity - 5,
+		Pressure:    current.Main.Pressure + 5,
+		Condition:   "Different from today",
+		Icon:        "02d",
+		WindSpeed:   3.0,
+	}
+
+	// 6 months ago data (simulated)
+	response.Historical["6months"] = struct {
+		Temperature float64 `json:"temperature"`
+		FeelsLike   float64 `json:"feelsLike"`
+		Humidity    int     `json:"humidity"`
+		Pressure    int     `json:"pressure"`
+		Condition   string  `json:"condition"`
+		Icon        string  `json:"icon"`
+		WindSpeed   float64 `json:"windSpeed"`
+	}{
+		Temperature: current.Main.Temp + 10, // Example: 10 degrees warmer 6 months ago (if it's winter now, it was summer then)
+		FeelsLike:   current.Main.Temp + 8,
+		Humidity:    current.Main.Humidity + 10,
+		Pressure:    current.Main.Pressure - 10,
+		Condition:   "Seasonal difference",
+		Icon:        "01d",
+		WindSpeed:   1.5,
+	}
+
+	return response, nil
+}
+
+// GetForecast fetches the weather forecast for the given coordinates
+func (s *WeatherService) GetForecast(lat, lon float64) (interface{}, error) {
+	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/forecast?lat=%f&lon=%f&appid=%s&units=metric", lat, lon, s.apiKey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		var errorResponse map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errorResponse)
+		return nil, fmt.Errorf("failed to fetch forecast data: %s", resp.Status)
+	}
+
+	var data interface{}
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}

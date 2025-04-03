@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Comparison</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/compare.css">
+</head>
+<body class="compare-page">
+<div class="container">
+    <div class="header-container">
+        <h1 class="white-text">Weather Comparison</h1>
+
+        {{ if .User }}
+        <div class="user-welcome">
+            <p class="white-text">Welcome, <strong>{{ .User.Username }}</strong>!</p>
+            <div class="user-links">
+                <a href="/profile" class="transparent-button">Your Profile</a>
+                <a href="/logout" class="transparent-button">Log Out</a>
+            </div>
+        </div>
+        {{ else }}
+        <div class="auth-links-top">
+            <a href="/login" class="transparent-button">Login</a>
+            <a href="/signup" class="transparent-button">Signup</a>
+        </div>
+        {{ end }}
+    </div>
+
+    <div class="search-area transparent-bg">
+        <div class="search-inputs">
+            <input
+                    type="text"
+                    id="city-input"
+                    placeholder="Enter your place"
+                    class="search-input transparent-input"
+            >
+            <button id="add-city" class="transparent-button">Add City</button>
+        </div>
+        <button id="clear-all" class="transparent-button">   Clear All</button>
+    </div>
+
+    {{ if .Error }}
+    <div class="error-message">{{ .Error }}</div>
+    {{ end }}
+
+    <div class="cities-container" id="cities-container">
+        {{ if .Cities }}
+        {{ range .Cities }}
+        <div class="city-card transparent-bg" data-city="{{ .Name }}">
+            <div class="city-header">
+                <h2>{{ .Name }}</h2>
+                <button class="remove-city" data-city="{{ .Name }}">×</button>
+            </div>
+            <div class="city-content">
+                <div class="temperature">{{ .Current.Temperature }}</div>
+                <div class="condition">{{ .Current.Condition }}</div>
+
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Humidity</span>
+                        <span class="detail-value">{{ .Current.Humidity }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Pressure</span>
+                        <span class="detail-value">{{ .Current.Pressure }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">UV Index</span>
+                        <div class="uv-badge">
+                            <span>{{ printf "%.0f" .Current.UVIndex }}</span>
+                            <span class="uv-category">{{ .Current.UVCategory }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        {{ else }}
+        <div class="empty-state transparent-bg">
+            <p>Add cities above to compare their weather conditions</p>
+        </div>
+        {{ end }}
+    </div>
+
+    {{ if .Cities }}
+    <div class="comparison-section transparent-bg">
+        <h2 class="white-text">Weather Comparison</h2>
+
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                <tr>
+                    <th>Metric</th>
+                    {{ range .Cities }}
+                    <th>{{ .Name }}</th>
+                    {{ end }}
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Temperature</td>
+                    {{ range .Cities }}
+                    <td>{{ .Current.Temperature }}</td>
+                    {{ end }}
+                </tr>
+                <tr>
+                    <td>Condition</td>
+                    {{ range .Cities }}
+                    <td>{{ .Current.Condition }}</td>
+                    {{ end }}
+                </tr>
+                <tr>
+                    <td>Humidity</td>
+                    {{ range .Cities }}
+                    <td>{{ .Current.Humidity }}</td>
+                    {{ end }}
+                </tr>
+                <tr>
+                    <td>  Pressure</td>
+                    {{ range .Cities }}
+                    <td>{{ .Current.Pressure }}</td>
+                    {{ end }}
+                </tr>
+                <tr>
+                    <td>  UV Index</td>
+                    {{ range .Cities }}
+                    <td>
+                        <span>{{ printf "%.0f" .Current.UVIndex }}</span>
+                        <span class="uv-category">{{ .Current.UVCategory }}</span>
+                    </td>
+                    {{ end }}
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{ end }}
+
+    <div class="back-link">
+        <a href="/" class="transparent-button">Back to Home</a>
+    </div>
+</div>
+
+<script src="/static/js/compare.js"></script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather for {{.City}} - GoWeather</title>
+  <link rel="stylesheet" href="/static/css/weather.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Enhanced background image styling with fallback */
+    body {
+      background-image: url('{{.BackgroundURL}}');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Fallback background if image fails to load */
+    @media (max-width: 768px) {
+      body {
+        background-attachment: scroll;
+      }
+    }
+
+    /* Accessibility improvements for text contrast */
+    .header, .weather-container, .forecast-section {
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+<!-- Header with improved navigation -->
+<header class="header">
+  <div class="header-container">
+    <div class="logo">
+      <a href="/" class="logo-link">
+        <i class="fas fa-cloud-sun"></i> GoWeather
+      </a>
+    </div>
+
+    {{if .User}}
+    <span class="welcome-text">
+      <i class="fas fa-user-circle"></i> Welcome, {{.User.Username}}
+      {{if .User.IsPremium}}
+      <span class="premium-badge"><i class="fas fa-crown"></i> Premium</span>
+      {{end}}
+    </span>
+    {{end}}
+
+    <nav class="auth-buttons">
+      {{if .User}}
+      <a href="/profile" class="auth-button">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="/compare" class="auth-button">
+        <i class="fas fa-balance-scale"></i> Compare
+      </a>
+      <a href="/historical-comparison" class="auth-button">
+        <i class="fas fa-chart-line"></i> History
+      </a>
+      <a href="/logout" class="auth-button">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+      {{else}}
+      <a href="/login" class="auth-button">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+      <a href="/signup" class="auth-button">
+        <i class="fas fa-user-plus"></i> Sign Up
+      </a>
+      {{end}}
+    </nav>
+  </div>
+</header>
+
+<!-- Main Content Area -->
+<main class="main-content">
+  <!-- Enhanced Search Form -->
+  <section class="search-container">
+    <form action="/weather" method="GET" class="search-form">
+      <div class="search-group">
+        <input type="text" name="city" value="{{.City}}" class="search-input"
+               placeholder="Search for a city..." required aria-label="City search">
+        <button type="submit" class="search-button">
+          <i class="fas fa-search"></i> Get Weather
+        </button>
+        <button type="button" class="location-button" id="getLocation">
+          <i class="fas fa-location-arrow"></i>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Weather Display Section -->
+  <section class="weather-container">
+    {{if .Error}}
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>Error: {{.Error}}</h3>
+      <p>Please try another city name or check your spelling.</p>
+    </div>
+    {{else if eq .City ""}}
+    <div class="welcome-message">
+      <i class="fas fa-cloud-sun"></i>
+      <h2>Welcome to GoWeather</h2>
+      <p>Enter a city name or use your current location to get weather information.</p>
+    </div>
+    {{else}}
+    <!-- Current Weather Section -->
+    <article class="current-weather">
+      <header>
+        <h2>Current Weather in {{.City}}</h2>
+        <div class="last-updated">
+          <i class="fas fa-sync-alt"></i> Updated: {{.Current.LastUpdated}}
+        </div>
+      </header>
+
+      <div class="weather-main">
+        <div class="current-temp">
+          {{.Current.Temperature}}
+          <img src="{{.Current.Icon}}" alt="{{.Current.Condition}}" class="weather-icon">
+        </div>
+        <div class="current-condition">{{.Current.Condition}}</div>
+      </div>
+
+      <div class="weather-details">
+        <div class="detail-row">
+          <span><i class="fas fa-tint"></i> Humidity</span>
+          <span>{{.Current.Humidity}}</span>
+        </div>
+        <div class="detail-row">
+          <span><i class="fas fa-tachometer-alt"></i> Pressure</span>
+          <span>{{.Current.Pressure}}</span>
+        </div>
+        <div class="detail-row">
+          <span><i class="fas fa-sun"></i> UV Index</span>
+          <span>
+            {{.Current.UVIndex}}
+            <span class="uv-indicator" style="background-color: {{.Current.UVColor}};">
+              {{.Current.UVCategory}}
+            </span>
+          </span>
+        </div>
+        <div class="detail-row">
+          <span><i class="fas fa-wind"></i> Wind</span>
+          <span>{{.Current.Wind}}</span>
+        </div>
+        <div class="detail-row">
+          <span><i class="fas fa-eye"></i> Visibility</span>
+          <span>{{.Current.Visibility}}</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Forecast Section -->
+    <article class="forecast-section">
+      <header>
+        <h2><i class="fas fa-calendar-alt"></i> 7-Day Forecast</h2>
+      </header>
+
+      {{if .Forecast}}
+      <div class="forecast-grid">
+        {{range .Forecast}}
+        <div class="forecast-card">
+          <div class="forecast-day">
+            <div class="forecast-day-name">{{.Day}}</div>
+            <div class="forecast-day-date">{{.Date}}</div>
+          </div>
+          <div class="forecast-icon">
+            <img src="{{.Icon}}" alt="{{.Description}}">
+          </div>
+          <div class="forecast-condition">
+            {{.Description}}
+          </div>
+          <div class="forecast-temp">
+            <span class="max-temp">{{printf "%.1f°C" .MaxTemp}}</span>
+            <span class="min-temp">{{printf "%.1f°C" .MinTemp}}</span>
+          </div>
+          <div class="forecast-details">
+            <span><i class="fas fa-tint"></i> {{.Humidity}}%</span>
+            <span><i class="fas fa-wind"></i> {{.WindSpeed}} m/s</span>
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="no-forecast">
+        <i class="fas fa-cloud-meatball"></i>
+        <p>No forecast data available for this location</p>
+      </div>
+      {{end}}
+    </article>
+    {{end}}
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <p>&copy; 2023 GoWeather. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Weather page loaded for city: {{.City}}');
+
+    // Location button functionality
+    const locationButton = document.getElementById('getLocation');
+    if (locationButton) {
+      locationButton.addEventListener('click', function() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+                  function(position) {
+                    window.location.href = `/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
+                  },
+                  function(error) {
+                    alert('Unable to retrieve your location. Please enter a city manually.');
+                    console.error('Geolocation error:', error);
+                  }
+          );
+        } else {
+          alert('Geolocation is not supported by your browser. Please enter a city manually.');
+        }
+      });
+    }
+
+    // Error logging
+    {{if .Error}}
+    console.error('Weather error:', '{{.Error}}');
+    {{end}}
+
+    // Performance tracking
+    window.addEventListener('load', function() {
+      const timing = window.performance.timing;
+      const loadTime = timing.loadEventEnd - timing.navigationStart;
+      console.log('Page load time:', loadTime + 'ms');
+    });
+  });
+</script>
+</body>
+</html>
