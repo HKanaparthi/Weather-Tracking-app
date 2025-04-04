@@ -1,5 +1,5 @@
 /**
- * Weather Impact App - Complete Solution
+ * Weather Impact App - Main JavaScript File
  *
  * This file handles all functionality for the Weather Impact page.
  */
@@ -86,6 +86,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.classList.remove('active');
             }
         });
+
+        // Alert close button
+        const alertClose = document.querySelector('.alert-close');
+        if (alertClose && weatherAlert) {
+            alertClose.addEventListener('click', function() {
+                weatherAlert.classList.remove('active');
+            });
+        }
     }
 
     function fetchRealWeatherData(city) {
@@ -97,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (noResults) noResults.style.display = 'none';
 
         // Fetch from your backend API endpoint
-        fetch(`/api/weather?city=${encodeURIComponent(city)}`)
+        fetch(`/api/weather/impact?city=${encodeURIComponent(city)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Weather data not found for this location');
@@ -569,7 +577,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return "Favorable";
         }
     }
-
     // Factor Rating Functions
     function getRatingForTemp(temp, activity) {
         switch(activity) {
@@ -787,7 +794,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return "Good conditions for hiking with clear trails and comfortable temperatures. Take standard precautions and enjoy your outdoor adventure.";
         }
     }
-
     function getDescriptionForGardening(temp, weather) {
         if (temp < 0 || temp > 32 || ['Thunderstorm', 'Snow'].includes(weather)) {
             return "Current conditions are not suitable for most gardening activities. Consider indoor gardening tasks or postpone to a more favorable day.";

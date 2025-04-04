@@ -3385,6 +3385,52 @@ func sendDailyReportForUser(user *models.User, notificationService *services.Not
 	}
 }
 
+// weatherImpactAPIHandler is specifically for the Weather Impact feature
+func weatherImpactAPIHandler(c *gin.Context) {
+	city := c.DefaultQuery("city", "")
+	if city == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "City name is required"})
+		return
+	}
+
+	log.Printf("Processing Weather Impact API request for city: %s", city)
+
+	// Get current weather data
+	weatherData, err := getCurrentWeather(city)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get UV data using coordinates from current weather
+	oneCallData, _ := getOneCallData(weatherData.Coord.Lat, weatherData.Coord.Lon)
+
+	// Default values
+	currentUV := 5.0 // Default medium value
+
+	// Get current UV index if available
+	if oneCallData != nil {
+		currentUV = oneCallData.Current.Uvi
+	}
+
+	// Prepare the response with fields formatted for the Weather Impact feature
+	response := gin.H{
+		"city": weatherData.Name,
+		"current": gin.H{
+			"temperature": fmt.Sprintf("%.1f°C", weatherData.Main.Temp),
+			"humidity":    fmt.Sprintf("%d%%", weatherData.Main.Humidity),
+			"pressure":    fmt.Sprintf("%d hPa", weatherData.Main.Pressure),
+			"uvIndex":     currentUV,
+			"condition":   weatherData.Weather[0].Description,
+			"wind":        fmt.Sprintf("%.1f m/s", weatherData.Wind.Speed),
+			"visibility":  fmt.Sprintf("%.1f km", float64(weatherData.Visibility)/1000), // Convert from meters to km
+			"icon":        weatherData.Weather[0].Icon,
+		},
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // main function to set up and run the application
 func main() {
 	// Set API key for services package
@@ -3638,6 +3684,8 @@ func main() {
 	router.GET("/weather", weatherHandler.GetWeather)
 
 	// API routes (no auth required)
+	router.GET("/api/weather/impact", weatherImpactAPIHandler)
+
 	router.GET("/api/weather", weatherAPIHandler)
 	router.GET("/api/compare", compareAPIHandler)
 	router.GET("/api/historical-comparison", historicalComparisonAPIHandler)
@@ -3692,5 +3740,6 @@ func main() {
 	port := getEnv("PORT", "8080")
 
 	log.Printf("Starting GoWeather Premium server on port %s...", port)
+
 	router.Run(":" + port)
 }

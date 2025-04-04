@@ -62,6 +62,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 showDetailedImpact(card);
             }
         });
+
+        // Alert close button
+        const alertClose = document.querySelector('.alert-close');
+        if (alertClose && elements.weatherAlert) {
+            alertClose.addEventListener('click', function() {
+                elements.weatherAlert.classList.remove('active');
+            });
+        }
+
+        // Additional integrations and event handlers
+        document.addEventListener('weatherUpdated', function(e) {
+            const weatherData = e.detail;
+            console.log('Weather data updated:', weatherData);
+
+            // Update impact assessments based on new weather data
+            if (weatherData && weatherData.current) {
+                updateImpactAssessments(weatherData);
+            }
+        });
     }
 
     function checkInitialState() {
@@ -300,4 +319,67 @@ document.addEventListener('DOMContentLoaded', function() {
         // In a real app, you would show this to the user
         // alert(message); or use a proper error display element
     }
+
+    function updateImpactAssessments(weatherData) {
+        // This function would update the impact assessments when weather data
+        // is updated from another component of the weather app
+        console.log('Updating impact assessments with new weather data');
+
+        // In a real implementation, this would regenerate the impact cards
+        // based on the new weather data
+        ensureUIState(true);
+
+        // Example of dispatching a custom event that other components might listen for
+        const impactUpdatedEvent = new CustomEvent('impactAssessmentsUpdated', {
+            detail: {
+                timestamp: new Date().toISOString(),
+                weatherData: weatherData
+            }
+        });
+        document.dispatchEvent(impactUpdatedEvent);
+    }
+
+    function ensureUIState(hasData) {
+        // Synchronize UI elements based on whether we have data
+        if (elements.currentWeatherSummary) {
+            elements.currentWeatherSummary.style.display = hasData ? 'flex' : 'none';
+        }
+        if (elements.impactFilter) {
+            elements.impactFilter.style.display = hasData ? 'block' : 'none';
+        }
+        if (elements.impactCards) {
+            elements.impactCards.style.display = hasData ? 'grid' : 'none';
+        }
+        if (elements.noResults) {
+            elements.noResults.style.display = hasData ? 'none' : 'block';
+        }
+    }
+
+    // Utility function to synchronize with the main weather app's theme
+    function syncWithAppTheme() {
+        // This would detect the app's current theme (light/dark)
+        // and apply corresponding styles to impact assessment elements
+        const isDarkMode = document.body.classList.contains('dark-theme');
+        const theme = isDarkMode ? 'dark' : 'light';
+
+        console.log(`Syncing Weather Impact UI with app theme: ${theme}`);
+
+        // Example of how theme synchronization might be implemented
+        if (elements.impactFilter && elements.impactCards) {
+            const themeClass = `theme-${theme}`;
+
+            // Remove existing theme classes
+            elements.impactFilter.classList.remove('theme-light', 'theme-dark');
+            elements.impactCards.classList.remove('theme-light', 'theme-dark');
+
+            // Add the current theme class
+            elements.impactFilter.classList.add(themeClass);
+            elements.impactCards.classList.add(themeClass);
+        }
+    }
+
+    // Listen for theme changes in the main app
+    document.addEventListener('themeChanged', function(e) {
+        syncWithAppTheme();
+    });
 });
