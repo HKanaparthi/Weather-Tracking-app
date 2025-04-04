@@ -44,7 +44,7 @@ FLUSH PRIVILEGES;
 
 Then create the users table:
 
-USE weather_app;
+```bash USE weather_app;
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
@@ -56,6 +56,7 @@ CREATE TABLE users (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+```
 
 ## 3. 🔑 Set Your OpenWeatherMap API Key
 
