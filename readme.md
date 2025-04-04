@@ -5,7 +5,7 @@
 
 ---
 
-## 🚀 Features
+## 1. 🚀 Features
 
 - 🔐 User authentication (Signup/Login)
 - 🌎 Real-time weather data by city or geolocation
@@ -19,7 +19,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## 2. 🛠️ Tech Stack
 
 - **Backend:** Go (Gin Framework), MySQL
 - **Frontend:** HTML, CSS (custom + responsive), JS
@@ -29,12 +29,12 @@
 
 ---
 
-## 📦 Project Structure
+## 3. 📦 Project Structure
 
 weather-tracking-app/ ├── main.go ├── models/ │ └── user.go ├── handlers/ ├── static/ │ └── dashboard.css ├── templates/ │ └── dashboard.html ├── assets/ │ └── ui-screenshot.png └── README.md
 
 
-## 2. 🧱 Install MySQL & Create Database
+## 4. 🧱 Install MySQL & Create Database
 
 ```bash CREATE DATABASE weather_app;
 CREATE USER 'weather_user'@'localhost' IDENTIFIED BY 'password123';
@@ -58,14 +58,14 @@ CREATE TABLE users (
 );
 ```
 
-## 3. 🔑 Set Your OpenWeatherMap API Key
+## 5. 🔑 Set Your OpenWeatherMap API Key
 
 In main.go or your .env:
 
 OPENWEATHER_API_KEY=your_actual_key
 Or hardcode it inside main.go for now while testing.
 
-## 4. 🚀 Run the App
+## 6. 🚀 Run the App
 
 go run main.go
 Visit http://localhost:8080 in your browser.
