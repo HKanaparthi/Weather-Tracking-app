@@ -53,7 +53,100 @@ body::before {
     opacity: 0.3;
     z-index: -1;
 }
+/* Navigation Buttons - Add this to your weatherImpact.css file */
 
+/* Top Navigation Container */
+.top-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Back to Home Button */
+.back-home {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-dark);
+    border-radius: var(--border-radius-md);
+    padding: 8px 15px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color var(--transition-speed);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+}
+
+.back-home i {
+    margin-right: 6px;
+}
+
+.back-home:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Main Navigation Buttons */
+.main-nav-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-button {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-dark);
+    border-radius: var(--border-radius-md);
+    padding: 8px 15px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-speed);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.nav-button:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.nav-button.active {
+    background-color: var(--primary-color);
+    color: #050505;
+}
+
+/* Premium Badge - Optional if you want to add a premium indicator like in the screenshot */
+.premium-badge {
+    background-color: var(--warning-color);
+    color: #050505;
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .top-nav-buttons {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .main-nav-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .nav-button {
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .back-home {
+        justify-content: center;
+    }
+}
 /* Main Container */
 .container {
     max-width: 1200px;
