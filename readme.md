@@ -23,7 +23,7 @@
 
 - **Backend:** Go (Gin Framework), MySQL
 - **Frontend:** HTML, CSS (custom + responsive), JS
-- **Weather API:** OpenWeatherMap (One Call, Air Pollution, UV)
+- **Weather API:** OpenWeatherMap (One Call, Air Pollution, UV, Humidity)
 - **Session & Security:** Cookies, bcrypt
 - **Scheduler:** Go routines for periodic jobs
 
@@ -60,7 +60,7 @@ CREATE TABLE users (
 
 ## 5. 🔑 Set Your OpenWeatherMap API Key
 
-In main.go or your .env:
+In main.go 
 
 OPENWEATHER_API_KEY=your_actual_key
 Or hardcode it inside main.go for now while testing.
