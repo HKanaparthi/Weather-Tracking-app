@@ -1662,7 +1662,7 @@ func getWeatherIconClass(condition string) string {
 	return "fas fa-cloud"
 }
 
-// weatherHandler handles the weather data request and rendering
+// Add or replace this in your weather.go or main.go file
 func weatherHandler(c *gin.Context) {
 	// Check if location coordinates are provided
 	latStr := c.Query("lat")
@@ -1710,6 +1710,7 @@ func weatherHandler(c *gin.Context) {
 		// Convert latitude and longitude to float
 		lat, err := strconv.ParseFloat(latStr, 64)
 		if err != nil {
+			log.Printf("Invalid latitude value: %s", latStr)
 			response.Error = "Invalid latitude value"
 			c.HTML(http.StatusOK, "weather.html", response)
 			return
@@ -1717,10 +1718,13 @@ func weatherHandler(c *gin.Context) {
 
 		lon, err := strconv.ParseFloat(lonStr, 64)
 		if err != nil {
+			log.Printf("Invalid longitude value: %s", lonStr)
 			response.Error = "Invalid longitude value"
 			c.HTML(http.StatusOK, "weather.html", response)
 			return
 		}
+
+		log.Printf("Processing weather request for coordinates: lat=%f, lon=%f", lat, lon)
 
 		// If showOptions is true, get nearby locations and display them
 		if showOptions {
@@ -1732,6 +1736,7 @@ func weatherHandler(c *gin.Context) {
 
 			// If we have locations to show, render the location options page
 			if len(nearbyLocations) > 0 {
+				log.Printf("Showing location options for coordinates: lat=%f, lon=%f", lat, lon)
 				c.HTML(http.StatusOK, "location-options.html", gin.H{
 					"title":     "Select Your Location",
 					"locations": nearbyLocations,
@@ -1743,21 +1748,45 @@ func weatherHandler(c *gin.Context) {
 
 		// Get weather data by coordinates
 		weatherData, err = getWeatherByCoordinates(lat, lon)
+		if err != nil {
+			log.Printf("Error getting weather by coordinates: %v", err)
+			response.Error = err.Error()
+			c.HTML(http.StatusOK, "weather.html", response)
+			return
+		}
+
+		// If user is logged in, redirect to dashboard
+		if user != nil {
+			log.Printf("User is logged in, redirecting to dashboard with coordinates")
+			c.Redirect(http.StatusFound, fmt.Sprintf("/dashboard?lat=%s&lon=%s", latStr, lonStr))
+			return
+		}
 	} else if city != "" {
+		log.Printf("Processing weather request for city: %s", city)
 		// Get weather data by city name
 		weatherData, err = getCurrentWeather(city)
+		if err != nil {
+			log.Printf("Error getting weather by city: %v", err)
+			response.Error = err.Error()
+			c.HTML(http.StatusOK, "weather.html", response)
+			return
+		}
+
+		// If user is logged in, redirect to dashboard
+		if user != nil {
+			log.Printf("User is logged in, redirecting to dashboard with city")
+			c.Redirect(http.StatusFound, fmt.Sprintf("/dashboard?city=%s", url.QueryEscape(city)))
+			return
+		}
 	} else {
 		// Redirect to home page if no parameters provided
+		log.Printf("No parameters provided, redirecting to home")
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
 
-	// Handle errors from weather data retrieval
-	if err != nil {
-		response.Error = err.Error()
-		c.HTML(http.StatusOK, "weather.html", response)
-		return
-	}
+	// Process weather data now that we have it
+	log.Printf("Got weather data for %s", weatherData.Name)
 
 	// Process weather data using premium API features
 	// Get OneCall data for premium features
@@ -1819,7 +1848,9 @@ func weatherHandler(c *gin.Context) {
 	// If OneCall API failed, fallback to regular forecast endpoint
 	regularForecastData, err := getForecastData(weatherData.Coord.Lat, weatherData.Coord.Lon)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("Error getting forecast data: %v", err)
+		response.Error = err.Error()
+		c.HTML(http.StatusOK, "weather.html", response)
 		return
 	}
 
@@ -1913,34 +1944,6 @@ func weatherHandler(c *gin.Context) {
 		Alerts:         alerts,
 		BackgroundURL:  backgroundURL,
 		User:           user,
-	}
-
-	// Check if the user is logged in and has notifications enabled
-	if user != nil && user.NotificationsEnabled && len(weatherData.Weather) > 0 {
-		// Check if the current weather condition meets the user's alert threshold
-		condition := weatherData.Weather[0].Description
-		if services.IsSevereWeather(condition, user.AlertThreshold) {
-			// Determine severity level based on the condition
-			severity := "Severe"
-			if strings.Contains(strings.ToLower(condition), "thunder") ||
-				strings.Contains(strings.ToLower(condition), "storm") ||
-				strings.Contains(strings.ToLower(condition), "hurricane") {
-				severity = "Severe"
-			} else if strings.Contains(strings.ToLower(condition), "rain") ||
-				strings.Contains(strings.ToLower(condition), "snow") {
-				severity = "Moderate"
-			} else {
-				severity = "Minor"
-			}
-
-			// Create notification service if it doesn't exist
-			initializeNotificationService()
-
-			if notificationService != nil {
-				// Send the alert
-				go notificationService.SendWeatherAlert(user.Email, weatherData.Name, condition, severity)
-			}
-		}
 	}
 
 	// Log user information before rendering

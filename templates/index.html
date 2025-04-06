@@ -23,10 +23,6 @@
 
     body {
       background: linear-gradient(135deg, #b6d0e2 0%, #97c1e2 50%, #8ab4d8 100%);
-      background-image:
-              linear-gradient(135deg, #b6d0e2 0%, #97c1e2 50%, #8ab4d8 100%),
-              radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%),
-              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%);
       position: relative;
       overflow-x: hidden;
       color: var(--text-color);
@@ -116,30 +112,6 @@
       transform: translateY(-2px);
     }
 
-    /* Profile Circle Styles */
-    .profile-button {
-      text-decoration: none;
-    }
-
-    .profile-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: #3498db;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 18px;
-      transition: all 0.3s ease;
-    }
-
-    .profile-circle:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    }
-
     .main {
       max-width: 1200px;
       margin: 0 auto;
@@ -169,7 +141,6 @@
 
     .search-container {
       text-align: center;
-      margin: 30px 0;
       position: relative;
       max-width: 600px;
       margin: 30px auto;
@@ -208,17 +179,41 @@
       transition: all 0.3s ease;
     }
 
+    .search-button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: 10px;
+    }
+
+    .search-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
     .location-button:hover {
       color: var(--button-color);
       transform: translateY(-50%) scale(1.1);
     }
 
-    .content-container {
+    .home-content {
       display: flex;
       justify-content: space-between;
       margin-top: 50px;
       gap: 40px;
       flex-wrap: wrap;
+    }
+
+    .weather-content {
+      display: none; /* Hidden by default, shown when weather data is loaded */
+      flex-direction: column;
+      align-items: center;
+      margin-top: 30px;
     }
 
     .left-content {
@@ -311,6 +306,138 @@
       font-size: 16px;
       margin-top: 10px;
       font-weight: 600;
+    }
+
+    /* Weather Display Styles */
+    .weather-card {
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      margin-top: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .weather-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .location-name {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .weather-time {
+      font-size: 16px;
+      color: #555;
+    }
+
+    .weather-main {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .weather-temp {
+      font-size: 64px;
+      font-weight: bold;
+      margin-right: 30px;
+    }
+
+    .weather-desc {
+      font-size: 24px;
+      margin-top: 10px;
+      text-transform: capitalize;
+    }
+
+    .weather-details {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      width: 100%;
+      gap: 20px;
+    }
+
+    .weather-detail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 20px;
+      border-radius: 15px;
+      min-width: 120px;
+    }
+
+    .detail-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #3498db;
+    }
+
+    .detail-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .detail-label {
+      font-size: 14px;
+      color: #555;
+      margin-top: 5px;
+    }
+
+    .forecast-section {
+      margin-top: 40px;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .forecast-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .forecast-container {
+      display: flex;
+      gap: 15px;
+      padding-bottom: 10px;
+    }
+
+    .forecast-day {
+      flex: 0 0 auto;
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 15px;
+      border-radius: 15px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .forecast-date {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .forecast-icon {
+      font-size: 24px;
+      margin: 10px 0;
+      color: #f1c40f;
+    }
+
+    .forecast-temp {
+      font-weight: bold;
     }
 
     .weather-types {
@@ -422,6 +549,7 @@
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 100;
     }
 
     .location-alert.show {
@@ -481,6 +609,7 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
       max-width: 400px;
+      z-index: 100;
     }
 
     .loading.show {
@@ -505,9 +634,33 @@
       100% { transform: rotate(360deg); }
     }
 
+    .error-container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: rgba(231, 76, 60, 0.2);
+      border-radius: 15px;
+      text-align: center;
+      display: none;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+
+    .error-container.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .error-message {
+      color: #c0392b;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 992px) {
-      .content-container {
+      .home-content {
         flex-direction: column;
       }
 
@@ -529,6 +682,16 @@
 
       .phone-mockup:hover {
         transform: none;
+      }
+
+      .weather-main {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .weather-temp {
+        margin-right: 0;
+        margin-bottom: 10px;
       }
     }
 
@@ -567,6 +730,14 @@
       .weather-type {
         flex: 0 0 calc(20% - 10px);
       }
+
+      .weather-details {
+        flex-direction: column;
+      }
+
+      .weather-detail {
+        width: 100%;
+      }
     }
 
     @media (max-width: 480px) {
@@ -576,6 +747,18 @@
 
       .logo span {
         display: none;
+      }
+
+      .location-name {
+        font-size: 24px;
+      }
+
+      .weather-temp {
+        font-size: 48px;
+      }
+
+      .weather-desc {
+        font-size: 18px;
       }
     }
   </style>
@@ -588,26 +771,14 @@
     <span>GoWeather</span>
   </a>
   <div class="auth-buttons">
-    {{ if .User }}
-    <a href="/profile" class="profile-button">
-      <div class="profile-circle">
-        {{ if .User.Username }}
-        <span>{{ slice .User.Username 0 1 | toUpper }}</span>
-        {{ else }}
-        <span>U</span>
-        {{ end }}
-      </div>
-    </a>
-    {{ else }}
     <a href="/login" class="auth-button">Login</a>
     <a href="/signup" class="auth-button">Signup</a>
-    {{ end }}
   </div>
 </div>
 
 <!-- Main Content -->
 <div class="main">
-  <h1 class="title">Weather Forecast</h1>
+  <h1 class="title" id="pageTitle">Weather Forecast</h1>
 
   <!-- Location Permission Alert -->
   <div id="locationAlert" class="location-alert">
@@ -624,22 +795,29 @@
     <span>Getting weather for your location...</span>
   </div>
 
+  <!-- Error Message -->
+  <div id="errorContainer" class="error-container">
+    <div class="error-message" id="errorMessage">Could not fetch weather data. Please try again.</div>
+  </div>
+
   <!-- Search Bar -->
   <div class="search-container">
-    <form id="searchForm" action="/weather" method="GET">
-      <input type="text" name="city" id="cityInput" class="search-bar" placeholder="Enter your place" required>
+    <form id="searchForm" onsubmit="searchWeather(event)">
+      <input type="text" id="cityInput" class="search-bar" placeholder="Enter your place" required>
       <button type="button" id="getLocation" class="location-button" title="Use your current location">
         <i class="fas fa-location-arrow"></i>
       </button>
+      <button type="submit" class="search-button">Get Weather</button>
     </form>
   </div>
 
-  <div class="content-container">
+  <!-- Homepage Content -->
+  <div id="homeContent" class="home-content">
     <div class="left-content">
       <div class="tagline">
         <h2>Go Language</h2>
         <p>Your personal weather station, right in your pocket.</p>
-        <a href="/weather" class="cta-button">Get Started</a>
+        <button onclick="requestLocationPermission()" class="cta-button">Get Started</button>
       </div>
 
       <div class="weather-icon-container">
@@ -672,24 +850,75 @@
         <div class="weather-type">
           <img src="https://cdn-icons-png.flaticon.com/512/1146/1146865.png" alt="Historical">
           <span>Historical</span>
-          <a href="historical-comparison.html" onclick="window.open('/historical-comparison', '_self'); return false;" style="display:block; margin-top:5px; text-decoration:none; color:#3498db;">View</a>
         </div>
       </div>
     </div>
 
     <div class="right-content">
       <div class="phone-mockup">
-        <img src="../static/appbackgroundhomepage.jpg" alt="Phone with weather app">
+        <img src="https://images.unsplash.com/photo-1590907047706-ee9c08cf3189?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2xvdWR5LHdlYXRoZXJ8fHx8fHwxNjgwOTk3MTAw&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=300" alt="Phone with weather app">
         <div class="feature-tag tag-top">Get Alerts on weather</div>
         <div class="feature-tag tag-middle">Data at your fingertips</div>
         <div class="feature-tag tag-bottom">Get Alerts on weather</div>
       </div>
     </div>
   </div>
+
+  <!-- Weather Display Content -->
+  <div id="weatherContent" class="weather-content">
+    <div class="weather-card">
+      <div class="weather-header">
+        <h2 class="location-name" id="locationName">Location Name</h2>
+        <div class="weather-time" id="weatherTime">Updated: 12:34 PM</div>
+      </div>
+
+      <div class="weather-main">
+        <div class="weather-temp" id="temperature">--°C</div>
+        <div>
+          <div class="weather-desc" id="weatherDescription">Weather Description</div>
+          <div class="weather-icon-container">
+            <i id="weatherIcon" class="fas fa-cloud weather-icon" style="font-size: 64px; color: #f1c40f;"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-details">
+        <div class="weather-detail">
+          <i class="fas fa-tint detail-icon"></i>
+          <div class="detail-value" id="humidity">--%</div>
+          <div class="detail-label">Humidity</div>
+        </div>
+        <div class="weather-detail">
+          <i class="fas fa-wind detail-icon"></i>
+          <div class="detail-value" id="windSpeed">-- m/s</div>
+          <div class="detail-label">Wind Speed</div>
+        </div>
+        <div class="weather-detail">
+          <i class="fas fa-compress-alt detail-icon"></i>
+          <div class="detail-value" id="pressure">-- hPa</div>
+          <div class="detail-label">Pressure</div>
+        </div>
+        <div class="weather-detail">
+          <i class="fas fa-eye detail-icon"></i>
+          <div class="detail-value" id="visibility">-- km</div>
+          <div class="detail-label">Visibility</div>
+        </div>
+      </div>
+
+      <div class="forecast-section">
+        <h3 class="forecast-title">5-Day Forecast</h3>
+        <div class="forecast-container" id="forecastContainer">
+          <!-- Forecast days will be inserted here dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- JavaScript for handling weather display and location permissions -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Elements
     const searchForm = document.getElementById('searchForm');
     const cityInput = document.getElementById('cityInput');
     const getLocationBtn = document.getElementById('getLocation');
@@ -697,124 +926,433 @@
     const allowLocationBtn = document.getElementById('allowLocation');
     const denyLocationBtn = document.getElementById('denyLocation');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const historicalLink = document.getElementById('historicalLink');
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    const homeContent = document.getElementById('homeContent');
+    const weatherContent = document.getElementById('weatherContent');
+    const pageTitle = document.getElementById('pageTitle');
 
-    // Add click handler for historical link to bypass server logic
-    if (historicalLink) {
-      historicalLink.addEventListener('click', function(e) {
+    // Check URL parameters to see if we should display weather
+    const urlParams = new URLSearchParams(window.location.search);
+    const cityParam = urlParams.get('city');
+    const latParam = urlParams.get('lat');
+    const lonParam = urlParams.get('lon');
+
+    // If we have city or coordinates in URL, fetch weather
+    if (cityParam) {
+      fetchWeatherByCity(cityParam);
+    } else if (latParam && lonParam) {
+      fetchWeatherByCoordinates(parseFloat(latParam), parseFloat(lonParam));
+    } else {
+      // Check if we should skip location check (if coming from location options page)
+      const skipLocationCheck = urlParams.get('from') === 'location_options';
+      if (!skipLocationCheck) {
+        // On page load, check if geolocation is allowed
+        setTimeout(function() {
+          console.log("Checking location permission status...");
+          checkLocationPermission();
+        }, 1000);
+      }
+    }
+
+    // Add event listeners
+    if (getLocationBtn) {
+      getLocationBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        window.location.replace('/historical-comparison');
+        console.log("Get location button clicked");
+        requestLocationPermission();
       });
     }
 
-    // Check if we should skip location check (if coming from location options page)
-    const urlParams = new URLSearchParams(window.location.search);
-    const skipLocationCheck = urlParams.get('from') === 'location_options';
-
-    // Check if geolocation is supported by the browser
-    if (!navigator.geolocation) {
-      console.log("Geolocation is not supported by this browser.");
-      getLocationBtn.style.display = 'none';
-    }
-
-    // Immediately request location when page loads, but only if not redirected from location options
-    if (!skipLocationCheck) {
-      requestLocationPermission();
-    }
-
-    // Location button click handler
-    getLocationBtn.addEventListener('click', function() {
-      requestLocationPermission();
-    });
-
-    // Allow location button click handler
-    allowLocationBtn.addEventListener('click', function() {
-      locationAlert.classList.remove('show');
-      getLocationWeather();
-    });
-
-    // Deny location button click handler
-    denyLocationBtn.addEventListener('click', function() {
-      locationAlert.classList.remove('show');
-      // User denied location, do nothing
-    });
-
-    // Form submission with Enter key
-    cityInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        searchForm.submit();
-      }
-    });
-
-    // Function to request location permission
-    function requestLocationPermission() {
-      if (navigator.permissions && navigator.permissions.query) {
-        navigator.permissions.query({ name: 'geolocation' })
-                .then(function(permissionStatus) {
-                  if (permissionStatus.state === 'granted') {
-                    // Permission already granted, get location weather
-                    getLocationWeather();
-                  } else if (permissionStatus.state === 'prompt') {
-                    // Show our custom permission dialog
-                    locationAlert.classList.add('show');
-                  } else {
-                    // Permission denied previously
-                    console.log("Geolocation permission denied.");
-                  }
-                });
-      } else {
-        // Older browsers - just try to get location
+    if (allowLocationBtn) {
+      allowLocationBtn.addEventListener('click', function() {
+        console.log("Allow location button clicked");
+        if (locationAlert) locationAlert.classList.remove('show');
         getLocationWeather();
-      }
+      });
     }
 
-    // Function to get weather for current location
-    function getLocationWeather() {
-      loadingIndicator.classList.add('show');
-
-      navigator.geolocation.getCurrentPosition(
-              // Success callback
-              function(position) {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-
-                // Redirect to location options page with coordinates
-                window.location.href = `/weather?lat=${latitude}&lon=${longitude}&options=true`;
-              },
-              // Error callback
-              function(error) {
-                loadingIndicator.classList.remove('show');
-
-                console.error("Error getting location:", error.message);
-
-                // Show an error message based on the error code
-                let errorMessage = "";
-                switch(error.code) {
-                  case error.PERMISSION_DENIED:
-                    errorMessage = "Location access was denied by the user.";
-                    break;
-                  case error.POSITION_UNAVAILABLE:
-                    errorMessage = "Location information is unavailable.";
-                    break;
-                  case error.TIMEOUT:
-                    errorMessage = "The request to get location timed out.";
-                    break;
-                  case error.UNKNOWN_ERROR:
-                    errorMessage = "An unknown error occurred.";
-                    break;
-                }
-
-                alert("Could not get your location: " + errorMessage);
-              },
-              // Options
-              {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-              }
-      );
+    if (denyLocationBtn) {
+      denyLocationBtn.addEventListener('click', function() {
+        console.log("Deny location button clicked");
+        if (locationAlert) locationAlert.classList.remove('show');
+      });
     }
   });
+
+  // Function to handle form submission
+  function searchWeather(event) {
+    event.preventDefault();
+    const cityInput = document.getElementById('cityInput');
+    const city = cityInput.value.trim();
+
+    if (city) {
+      console.log("Searching for city:", city);
+      fetchWeatherByCity(city);
+
+      // Update URL without refreshing the page
+      const newUrl = window.location.pathname + '?city=' + encodeURIComponent(city);
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+  }
+
+  // Function to check location permission status
+  function checkLocationPermission() {
+    console.log("Checking permission...");
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' })
+              .then(function(permissionStatus) {
+                console.log("Permission status:", permissionStatus.state);
+                if (permissionStatus.state === 'granted') {
+                  // Permission already granted, get location weather
+                  getLocationWeather();
+                } else if (permissionStatus.state === 'prompt') {
+                  // Show our custom permission dialog
+                  const locationAlert = document.getElementById('locationAlert');
+                  if (locationAlert) {
+                    console.log("Showing location alert");
+                    locationAlert.classList.add('show');
+                  } else {
+                    console.log("Location alert element not found");
+                  }
+                } else {
+                  // Permission denied previously
+                  console.log("Geolocation permission denied previously");
+                }
+              })
+              .catch(function(error) {
+                console.error("Error checking permissions:", error);
+              });
+    } else {
+      console.log("Browser doesn't support permission API");
+    }
+  }
+
+  // Function to request location permission
+  function requestLocationPermission() {
+    console.log("Requesting permission...");
+    const locationAlert = document.getElementById('locationAlert');
+    if (locationAlert) locationAlert.classList.add('show');
+  }
+
+  // Function to get weather for current location
+  function getLocationWeather() {
+    console.log("Getting location weather...");
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) loadingIndicator.classList.add('show');
+
+    navigator.geolocation.getCurrentPosition(
+            // Success callback
+            function(position) {
+              const latitude = position.coords.latitude;
+              const longitude = position.coords.longitude;
+              console.log(`Got coordinates: lat=${latitude}, lon=${longitude}`);
+
+              // Fetch weather with coordinates
+              fetchWeatherByCoordinates(latitude, longitude);
+
+              // Update URL without refreshing the page
+              const newUrl = window.location.pathname + `?lat=${latitude}&lon=${longitude}`;
+              window.history.pushState({ path: newUrl }, '', newUrl);
+            },
+            // Error callback
+            function(error) {
+              console.error("Error getting location:", error);
+              const loadingIndicator = document.getElementById('loadingIndicator');
+              if (loadingIndicator) loadingIndicator.classList.remove('show');
+
+              // Show error message
+              const errorContainer = document.getElementById('errorContainer');
+              const errorMessage = document.getElementById('errorMessage');
+
+              // Show an error message based on the error code
+              let errorText = "";
+              switch(error.code) {
+                case error.PERMISSION_DENIED:
+                  errorText = "Location access was denied by the user.";
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorText = "Location information is unavailable.";
+                  break;
+                case error.TIMEOUT:
+                  errorText = "The request to get location timed out.";
+                  break;
+                case error.UNKNOWN_ERROR:
+                  errorText = "An unknown error occurred.";
+                  break;
+              }
+
+              if (errorMessage) errorMessage.textContent = "Could not get your location: " + errorText;
+              if (errorContainer) errorContainer.classList.add('show');
+            },
+            // Options
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+    );
+  }
+
+  // Function to fetch weather by city name
+  function fetchWeatherByCity(city) {
+    console.log("Fetching weather for city:", city);
+    showLoadingIndicator();
+    hideErrorMessage();
+
+    // Fetch current weather data
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=0c2e2084bdd01a671b1b450215191f89&units=metric`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Weather data not found for "${city}"`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Current weather data:", data);
+
+              // Use coordinates from response to get 5-day forecast
+              const lat = data.coord.lat;
+              const lon = data.coord.lon;
+
+              // Also fetch 5-day forecast
+              fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=0c2e2084bdd01a671b1b450215191f89&units=metric`)
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error("Failed to fetch forecast data");
+                        }
+                        return response.json();
+                      })
+                      .then(forecastData => {
+                        // Display all the weather data
+                        displayWeatherData(data, forecastData);
+                      })
+                      .catch(error => {
+                        console.error("Error fetching forecast:", error);
+                        // Still display current weather even if forecast fails
+                        displayWeatherData(data, null);
+                      });
+            })
+            .catch(error => {
+              console.error("Error fetching weather:", error);
+              hideLoadingIndicator();
+              showErrorMessage(error.message);
+            });
+  }
+
+  // Function to fetch weather by coordinates
+  function fetchWeatherByCoordinates(lat, lon) {
+    console.log(`Fetching weather for coordinates: lat=${lat}, lon=${lon}`);
+    showLoadingIndicator();
+    hideErrorMessage();
+
+    // Fetch current weather data
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=0c2e2084bdd01a671b1b450215191f89&units=metric`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Weather data not found for these coordinates");
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Current weather data:", data);
+
+              // Also fetch 5-day forecast
+              fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=0c2e2084bdd01a671b1b450215191f89&units=metric`)
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error("Failed to fetch forecast data");
+                        }
+                        return response.json();
+                      })
+                      .then(forecastData => {
+                        // Display all the weather data
+                        displayWeatherData(data, forecastData);
+                      })
+                      .catch(error => {
+                        console.error("Error fetching forecast:", error);
+                        // Still display current weather even if forecast fails
+                        displayWeatherData(data, null);
+                      });
+            })
+            .catch(error => {
+              console.error("Error fetching weather:", error);
+              hideLoadingIndicator();
+              showErrorMessage(error.message);
+            });
+  }
+
+  // Function to display weather data
+  function displayWeatherData(currentData, forecastData) {
+    console.log("Displaying weather data");
+    hideLoadingIndicator();
+
+    // Hide home content and show weather content
+    const homeContent = document.getElementById('homeContent');
+    const weatherContent = document.getElementById('weatherContent');
+    const pageTitle = document.getElementById('pageTitle');
+
+    if (homeContent) homeContent.style.display = 'none';
+    if (weatherContent) weatherContent.style.display = 'flex';
+    if (pageTitle) pageTitle.textContent = `Current Weather in ${currentData.name}`;
+
+    // Set current weather data
+    document.getElementById('locationName').textContent = currentData.name;
+    document.getElementById('weatherTime').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+    document.getElementById('temperature').textContent = `${Math.round(currentData.main.temp)}°C`;
+    document.getElementById('weatherDescription').textContent = currentData.weather[0].description;
+    document.getElementById('humidity').textContent = `${currentData.main.humidity}%`;
+    document.getElementById('windSpeed').textContent = `${currentData.wind.speed} m/s`;
+    document.getElementById('pressure').textContent = `${currentData.main.pressure} hPa`;
+    document.getElementById('visibility').textContent = `${currentData.visibility / 1000} km`;
+
+    // Set weather icon
+    const weatherIcon = document.getElementById('weatherIcon');
+    weatherIcon.className = getWeatherIconClass(currentData.weather[0].description);
+
+    // Display forecast data if available
+    if (forecastData && forecastData.list) {
+      displayForecastData(forecastData);
+    }
+
+    // Add background based on weather
+    document.body.style.backgroundImage = `linear-gradient(135deg, #b6d0e2 0%, #97c1e2 50%, #8ab4d8 100%), url('${getWeatherBackgroundURL(currentData.weather[0].description)}')`;
+    document.body.style.backgroundBlendMode = 'overlay';
+    document.body.style.backgroundSize = 'cover';
+  }
+
+  // Function to display forecast data
+  function displayForecastData(forecastData) {
+    const forecastContainer = document.getElementById('forecastContainer');
+    if (!forecastContainer) return;
+
+    // Clear previous forecast
+    forecastContainer.innerHTML = '';
+
+    // Process forecast data to get daily forecasts
+    const dailyForecasts = processForecastData(forecastData.list);
+
+    // Create forecast day elements
+    dailyForecasts.forEach(forecast => {
+      const forecastDay = document.createElement('div');
+      forecastDay.className = 'forecast-day';
+
+      forecastDay.innerHTML = `
+        <div class="forecast-date">${forecast.day}<br>${forecast.date}</div>
+        <i class="${getWeatherIconClass(forecast.description)} forecast-icon"></i>
+        <div class="forecast-temp">${Math.round(forecast.maxTemp)}° / ${Math.round(forecast.minTemp)}°</div>
+      `;
+
+      forecastContainer.appendChild(forecastDay);
+    });
+  }
+
+  // Function to process forecast data into daily forecasts
+  function processForecastData(forecastList) {
+    // Map to store forecasts by date
+    const dailyMap = {};
+
+    for (const item of forecastList) {
+      // Parse the datetime
+      const dateTime = new Date(item.dt * 1000);
+      const dateStr = dateTime.toISOString().split('T')[0];
+
+      // If this date doesn't exist in our map, create it
+      if (!dailyMap[dateStr]) {
+        const dayName = dateTime.toLocaleDateString('en-US', { weekday: 'short' });
+        const displayDate = dateTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        dailyMap[dateStr] = {
+          date: displayDate,
+          day: dayName,
+          maxTemp: item.main.temp_max,
+          minTemp: item.main.temp_min,
+          description: item.weather[0].description
+        };
+      } else {
+        // Update max/min temperature if needed
+        const forecast = dailyMap[dateStr];
+        if (item.main.temp_max > forecast.maxTemp) {
+          forecast.maxTemp = item.main.temp_max;
+        }
+        if (item.main.temp_min < forecast.minTemp) {
+          forecast.minTemp = item.main.temp_min;
+        }
+      }
+    }
+
+    // Convert map to array and sort by date
+    return Object.values(dailyMap).slice(0, 5);
+  }
+
+  // Function to get weather icon class based on description
+  function getWeatherIconClass(description) {
+    description = description.toLowerCase();
+
+    if (description.includes('clear') || description.includes('sun')) {
+      return 'fas fa-sun';
+    } else if (description.includes('partly cloudy') || description.includes('few clouds')) {
+      return 'fas fa-cloud-sun';
+    } else if (description.includes('cloud')) {
+      return 'fas fa-cloud';
+    } else if (description.includes('rain') || description.includes('drizzle')) {
+      return 'fas fa-cloud-rain';
+    } else if (description.includes('thunder') || description.includes('lightning')) {
+      return 'fas fa-bolt';
+    } else if (description.includes('snow')) {
+      return 'fas fa-snowflake';
+    } else if (description.includes('mist') || description.includes('fog')) {
+      return 'fas fa-smog';
+    }
+
+    // Default icon
+    return 'fas fa-cloud';
+  }
+
+  // Function to get weather background URL based on description
+  function getWeatherBackgroundURL(description) {
+    description = description.toLowerCase();
+
+    if (description.includes('clear') || description.includes('sun')) {
+      return 'https://images.unsplash.com/photo-1517758478390-c89333af4642?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    } else if (description.includes('cloud')) {
+      return 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    } else if (description.includes('rain') || description.includes('drizzle')) {
+      return 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    } else if (description.includes('thunder') || description.includes('storm')) {
+      return 'https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    } else if (description.includes('snow')) {
+      return 'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    } else if (description.includes('mist') || description.includes('fog')) {
+      return 'https://images.unsplash.com/photo-1487621167305-5d248087c724?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+    }
+
+    // Default background
+    return 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80';
+  }
+
+  // Helper functions for showing/hiding UI elements
+  function showLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) loadingIndicator.classList.add('show');
+  }
+
+  function hideLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) loadingIndicator.classList.remove('show');
+  }
+
+  function showErrorMessage(message) {
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    if (errorMessage) errorMessage.textContent = message;
+    if (errorContainer) errorContainer.classList.add('show');
+  }
+
+  function hideErrorMessage() {
+    const errorContainer = document.getElementById('errorContainer');
+    if (errorContainer) errorContainer.classList.remove('show');
+  }
 </script>
 </body>
 </html>
