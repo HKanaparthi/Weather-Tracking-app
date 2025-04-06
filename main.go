@@ -3456,7 +3456,8 @@ func main() {
 	router.Use(sessions.Sessions("weather_session", store))
 
 	// Set the router to use HTML templates
-	router.LoadHTMLGlob("templates/*")
+
+	router.LoadHTMLGlob("templates/*.html")
 
 	// Serve static files
 	router.Static("/static", "./static")
@@ -3468,7 +3469,7 @@ func main() {
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbUser := getEnv("DB_USER", "weather_user")
-	dbPassword := getEnv("DB_PASSWORD", "Manvitha@02")
+	dbPassword := getEnv("DB_PASSWORD", "harsha03")
 	dbName := getEnv("DB_NAME", "weather_app")
 
 	// Build MySQL DSN string
