@@ -1,14 +1,16 @@
-/* signup.css - Styles specific to the signup page */
+/* signup.css - Dark Theme for the signup page */
 
 :root {
-    --primary-color: #5F7FE1;
-    --primary-light: #7C95E6;
-    --primary-dark: #4A6DCE;
-    --background-light: #E1EAFD;
+    --primary-color: #4A90E2;
+    --primary-light: #75AAEB;
+    --primary-dark: #3A75C4;
+    --background-dark: #121212;
+    --background-card: #1E1E1E;
+    --background-input: #2A2A2A;
     --text-light: #FFFFFF;
-    --text-dark: #333333;
+    --text-gray: #BBBBBB;
     --text-muted: #888888;
-    --border-color: #E0E0E0;
+    --border-color: #333333;
     --error-color: #F44336;
     --success-color: #4CAF50;
 }
@@ -22,8 +24,8 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
-    color: var(--text-dark);
-    background-color: var(--background-light);
+    color: var(--text-light);
+    background-color: var(--background-dark);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -40,10 +42,10 @@ body {
 /* Auth Container */
 .auth-container {
     display: flex;
-    background-color: white;
+    background-color: var(--background-card);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
     max-width: 1000px;
     margin: 0 auto;
     min-height: 600px;
@@ -58,20 +60,32 @@ body {
     flex-direction: column;
     justify-content: space-between;
     padding: 30px;
-    background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80');
+    background-image: url('../loginPhoto.jpg');
     background-size: cover;
     background-position: center;
 }
 
-.logo {
-    font-size: 28px;
-    font-weight: 700;
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: 1;
+}
+
+/* Logo styling */
+.logo-container {
     position: relative;
     z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
+    align-self: flex-start;
+    margin-bottom: 20px;
+}
+
+.site-logo {
+    max-width: 150px;
+    height: auto;
 }
 
 .tagline {
@@ -84,25 +98,25 @@ body {
 /* Form Side */
 .auth-form {
     flex: 1;
-    padding: 40px;
+    padding: 50px 40px;
     display: flex;
     flex-direction: column;
-    background-color: white;
+    background-color: var(--background-card);
 }
 
 .auth-form h1 {
     font-size: 32px;
     margin-bottom: 10px;
-    color: var(--text-dark);
+    color: var(--text-light);
 }
 
 .auth-form p {
-    color: var(--text-muted);
+    color: var(--text-gray);
     margin-bottom: 30px;
 }
 
 .auth-form a {
-    color: var(--primary-color);
+    color: var(--primary-light);
     text-decoration: none;
 }
 
@@ -112,7 +126,7 @@ body {
 
 /* Error Alert */
 .error-alert {
-    background-color: rgba(244, 67, 54, 0.1);
+    background-color: rgba(244, 67, 54, 0.15);
     color: var(--error-color);
     padding: 12px 15px;
     border-radius: 8px;
@@ -146,7 +160,8 @@ input[type="password"] {
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.3s;
-    background-color: #FFFFFF;
+    background-color: var(--background-input);
+    color: var(--text-light);
 }
 
 input[type="text"]:focus,
@@ -154,7 +169,7 @@ input[type="email"]:focus,
 input[type="password"]:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(95, 127, 225, 0.1);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
 input::placeholder {
@@ -171,7 +186,7 @@ input::placeholder {
 }
 
 .password-toggle:hover {
-    color: var(--primary-color);
+    color: var(--primary-light);
 }
 
 /* Checkbox */
@@ -211,6 +226,23 @@ input::placeholder {
     background-color: var(--primary-dark);
 }
 
+/* Secondary action buttons */
+.btn-secondary {
+    background-color: rgba(74, 144, 226, 0.15);
+    color: var(--primary-light);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(74, 144, 226, 0.25);
+}
+
 /* Divider */
 .divider {
     display: flex;
@@ -248,7 +280,8 @@ input::placeholder {
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 25px;
-    background-color: white;
+    background-color: var(--background-input);
+    color: var(--text-light);
     cursor: pointer;
     transition: background-color 0.3s;
     font-weight: 500;
@@ -256,7 +289,7 @@ input::placeholder {
 
 .btn-google:hover,
 .btn-apple:hover {
-    background-color: #f5f5f5;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Header */
@@ -265,7 +298,7 @@ input::placeholder {
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(20, 20, 20, 0.95);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -275,7 +308,7 @@ input::placeholder {
     gap: 10px;
     font-weight: 700;
     font-size: 20px;
-    color: var(--text-dark);
+    color: var(--text-light);
 }
 
 .header-actions {
