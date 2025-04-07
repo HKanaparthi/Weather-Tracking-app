@@ -1,100 +1,126 @@
+<!--Historical-comparison.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historical Weather Comparison</title>
+    <title>Historical Weather Comparison - GoWeather Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/comparisionHistorical.css">
-
 </head>
-<body>
-<div class="container">
-    <header>
-        <nav>
-            <div class="logo">Weather App</div>
-            <ul>
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/weather">Current Weather</a></li>
-                <li><a href="/historical-comparison" class="active">Historical Comparison</a></li>
-                <li><a href="/compare">Compare Locations</a></li>
-                <li><a href="/activities">My Activities</a></li>
-                <li><a href="/profile">Profile</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+<body class="dark-theme">   
+<!-- Header -->
+<div class="header">
+    <div class="header-logo">
+        <a href="/" class="logo">
+            <img src="/static/Mainlogo.png" alt="GoWeather Logo" class="logo-img">
+        </a>
+    </div>
+    <div class="header-right">
+        <div class="welcome-text">Welcome, <strong id="username">User</strong></div>
+        <div class="nav-buttons">
+            <a href="/dashboard" class="transparent-button">Home</a>
+            <a href="/compare" class="transparent-button">Compare</a>
+            <a href="/activities" class="transparent-button">Activities</a>
+            <a href="/alerts" class="transparent-button premium-feature">Alerts</a>
 
-    <main>
-        <!-- Debug information (only shown when debug=true) -->
-        {{if .debug}}
-        <div class="debug-info" style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-            <h3>Debug Information</h3>
-            <pre>{{.historicalData}}</pre>
-        </div>
-        {{end}}
-        <h1>Historical Weather Comparison</h1>
-        <p class="section-description">
-            Compare today's weather with historical data from the same location 1, 3, and 6 months ago.
-        </p>
-
-        <!-- Loading indicator -->
-        <div id="loading" class="loading-container hidden">
-            <div class="loading-spinner"></div>
-            <p id="loading-message">Loading...</p>
-        </div>
-
-        <!-- Error message -->
-        <div id="error-message" class="error-message hidden"></div>
-
-        <!-- Location selector -->
-        <div id="location-selector" class="location-selector">
-            <h2>Select a Location</h2>
-            <div class="location-search">
-                <input type="text" id="location-input" placeholder="Enter city name or address">
-                <button id="location-search-btn" class="btn primary">Search</button>
-            </div>
-            <div class="location-current">
-                <button id="current-location-btn" class="btn secondary">Use My Current Location</button>
+            <!-- Profile dropdown -->
+            <div class="profile-dropdown">
+                <div class="profile-circle">
+                    <span id="profile-initial">U</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Comparison section -->
-        <div id="comparison-section" class="comparison-section hidden">
-            <h2 id="location-title">Weather Comparison</h2>
+<div class="dashboard-container">
+    <h1>Historical Weather Comparison</h1>
+    <p class="section-description">
+        Compare today's weather with historical data from the same location 1, 3, and 6 months ago.
+    </p>
 
-            <div class="weather-cards-container">
-                <div id="current-weather" class="weather-card-container"></div>
-                <div id="month-1-weather" class="weather-card-container"></div>
-                <div id="month-3-weather" class="weather-card-container"></div>
-                <div id="month-6-weather" class="weather-card-container"></div>
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="loading">
+        <div class="spinner"></div>
+        <span>Getting historical weather data...</span>
+    </div>
+
+    <!-- Location selector -->
+    <div id="location-selector" class="weather-card">
+        <h2>Select a Location</h2>
+        <div class="location-search">
+            <form id="searchForm" action="#" method="GET">
+                <div class="search-box">
+                    <input type="text" id="location-input" class="search-bar" placeholder="Enter city name or address">
+                    <button type="button" id="getLocation" class="location-button" title="Use your current location">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                </div>
+                <button type="submit" id="location-search-btn" class="search-button">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comparison section -->
+    <div id="comparison-section" class="comparison-section hidden">
+        <h2 id="location-title" class="location-title">Weather Comparison</h2>
+
+        <div class="weather-cards-container">
+            <div id="current-weather" class="weather-card weather-card-container">
+                <!-- Current weather data will be populated here -->
             </div>
-
-            <div id="differences-container" class="differences-container hidden"></div>
-
-            <div class="actions">
-                <button id="change-location-btn" class="btn secondary">Change Location</button>
+            <div id="month-1-weather" class="weather-card weather-card-container">
+                <!-- 1 month ago weather data will be populated here -->
+            </div>
+            <div id="month-3-weather" class="weather-card weather-card-container">
+                <!-- 3 months ago weather data will be populated here -->
+            </div>
+            <div id="month-6-weather" class="weather-card weather-card-container">
+                <!-- 6 months ago weather data will be populated here -->
             </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2025 Weather App. All rights reserved.</p>
-    </footer>
+        <div id="differences-container" class="weather-card differences-container hidden">
+            <!-- Weather differences will be populated here -->
+        </div>
+
+        <div class="actions">
+            <button id="change-location-btn" class="transparent-button">Change Location</button>
+        </div>
+    </div>
 </div>
 
 <script src="/static/js/historical-comparison.js"></script>
 <script>
-    // Add event listener for logout button
-    document.getElementById('logout-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        localStorage.removeItem('authToken');
-        window.location.href = '/login.html';
-    });
-
     // Add event listener for change location button
     document.getElementById('change-location-btn').addEventListener('click', function() {
         document.getElementById('comparison-section').classList.add('hidden');
         document.getElementById('location-selector').classList.remove('hidden');
+    });
+
+    // Get location button functionality
+    document.getElementById('getLocation').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            document.getElementById('loadingIndicator').classList.add('show');
+            navigator.geolocation.getCurrentPosition(function(position) {
+                // You would typically send these coordinates to your backend
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                document.getElementById('location-input').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                document.getElementById('loadingIndicator').classList.remove('show');
+            }, function(error) {
+                console.error("Error getting location: ", error);
+                document.getElementById('loadingIndicator').classList.remove('show');
+                alert("Unable to retrieve your location. Please enter it manually.");
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
     });
 </script>
 </body>

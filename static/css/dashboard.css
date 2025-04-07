@@ -14,7 +14,7 @@
 }
 
 body {
-    background-image: url('/static/appbackgroundhomepage.jpg');
+    background-image: url('../mainbg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

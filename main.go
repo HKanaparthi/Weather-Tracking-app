@@ -3657,7 +3657,7 @@ func main() {
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbUser := getEnv("DB_USER", "weather_user")
-	dbPassword := getEnv("DB_PASSWORD", "Manvitha@02")
+	dbPassword := getEnv("DB_PASSWORD", "harsha03")
 	dbName := getEnv("DB_NAME", "weather_app")
 
 	// Build MySQL DSN string
