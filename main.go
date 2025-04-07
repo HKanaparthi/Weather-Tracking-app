@@ -21,6 +21,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/joho/godotenv"
 
 	"weather-app/handlers"
 	"weather-app/middleware"
@@ -425,6 +426,14 @@ type TimeMachineResponse struct {
 	} `json:"data"`
 }
 
+type WeatherProxyResponse struct {
+	City     string                   `json:"city"`
+	Current  map[string]interface{}   `json:"current"`
+	Forecast []map[string]interface{} `json:"forecast"`
+	Hourly   []map[string]interface{} `json:"hourly"`
+	Alerts   []map[string]interface{} `json:"alerts"`
+}
+
 // getEnv returns environment variable or default value
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
@@ -615,6 +624,116 @@ func getBackgroundImage(condition string) string {
 	return "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
 }
 
+func weatherProxyHandler(c *gin.Context) {
+	// Get query parameters
+	city := c.Query("city")
+	latStr := c.Query("lat")
+	lonStr := c.Query("lon")
+
+	// Validate parameters
+	if city == "" && (latStr == "" || lonStr == "") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "City or coordinates are required"})
+		return
+	}
+
+	var currentWeather *WeatherData
+	var err error
+
+	// Get weather data
+	if city != "" {
+		// Get weather by city name
+		currentWeather, err = getCurrentWeather(city)
+	} else {
+		// Convert coordinates to city name using reverse geocoding
+		locationName, coordErr := getLocationNameFromCoordinates(
+			parseFloat(latStr),
+			parseFloat(lonStr),
+		)
+		if coordErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Could not determine location name"})
+			return
+		}
+		currentWeather, err = getCurrentWeather(locationName)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch current weather"})
+		return
+	}
+
+	// Fetch coordinates for OneCall API
+	lat := currentWeather.Coord.Lat
+	lon := currentWeather.Coord.Lon
+
+	// Fetch one call data for comprehensive information
+	oneCallData, err := getOneCallData(lat, lon)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch comprehensive weather data"})
+		return
+	}
+
+	// Prepare response
+	response := WeatherProxyResponse{
+		City: currentWeather.Name,
+		Current: map[string]interface{}{
+			"temperature": currentWeather.Main.Temp,
+			"feelsLike":   currentWeather.Main.FeelsLike,
+			"humidity":    currentWeather.Main.Humidity,
+			"description": currentWeather.Weather[0].Description,
+		},
+	}
+
+	// Add forecast data
+	if oneCallData != nil {
+		// Process daily forecast
+		response.Forecast = processDailyForecast(oneCallData)
+
+		// Process hourly forecast
+		response.Hourly = processHourlyForecast(oneCallData)
+
+		// Process alerts
+		response.Alerts = processAlerts(oneCallData)
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// Helper function to parse float safely
+func parseFloat(s string) float64 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
+}
+
+type Geocoding struct {
+	Lat float64
+	Lon float64
+}
+
+// getCoordinatesForCity fetches coordinates for a given city name
+func getCoordinatesForCity(city string) (*Geocoding, error) {
+	url := fmt.Sprintf("http://api.openweathermap.org/geo/1.0/direct?q=%s&limit=1&appid=%s", city, apiKey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var locations []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&locations); err != nil {
+		return nil, err
+	}
+
+	if len(locations) == 0 {
+		return nil, fmt.Errorf("no coordinates found for city")
+	}
+
+	return &Geocoding{
+		Lat: locations[0]["lat"].(float64),
+		Lon: locations[0]["lon"].(float64),
+	}, nil
+}
+
 // getCurrentWeather fetches the current weather data
 func getCurrentWeather(city string) (*WeatherData, error) {
 	// URL encode the city name to properly handle spaces and special characters
@@ -647,6 +766,75 @@ func getCurrentWeather(city string) (*WeatherData, error) {
 	return &data, nil
 }
 
+// getOneCallWeatherData fetches comprehensive weather data
+func getOneCallWeatherData(lat, lon float64) (map[string]interface{}, error) {
+	url := fmt.Sprintf("https://api.openweathermap.org/data/3.0/onecall?lat=%f&lon=%f&exclude=minutely&appid=%s&units=metric", lat, lon, apiKey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var oneCallData map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&oneCallData); err != nil {
+		return nil, err
+	}
+
+	return oneCallData, nil
+}
+
+// New helper functions for processing data
+func processDailyForecast(oneCallData *OneCallData) []map[string]interface{} {
+	dailyData := []map[string]interface{}{}
+
+	for _, daily := range oneCallData.Daily {
+		dayData := map[string]interface{}{
+			"date":        time.Unix(daily.Dt, 0).Format("2006-01-02"),
+			"maxTemp":     daily.Temp.Max,
+			"minTemp":     daily.Temp.Min,
+			"description": daily.Weather[0].Description,
+			"icon":        daily.Weather[0].Icon,
+			"precipProb":  daily.Pop * 100, // Convert to percentage
+		}
+		dailyData = append(dailyData, dayData)
+	}
+
+	return dailyData
+}
+
+func processHourlyForecast(oneCallData *OneCallData) []map[string]interface{} {
+	hourlyData := []map[string]interface{}{}
+
+	for _, hourly := range oneCallData.Hourly {
+		hourData := map[string]interface{}{
+			"time":       time.Unix(hourly.Dt, 0).Format("15:04"),
+			"temp":       hourly.Temp,
+			"icon":       hourly.Weather[0].Icon,
+			"precipProb": hourly.Pop * 100, // Convert to percentage
+		}
+		hourlyData = append(hourlyData, hourData)
+	}
+
+	return hourlyData
+}
+
+func processAlerts(oneCallData *OneCallData) []map[string]interface{} {
+	alertData := []map[string]interface{}{}
+
+	for _, alert := range oneCallData.Alerts {
+		alertItem := map[string]interface{}{
+			"event":       alert.Event,
+			"description": alert.Description,
+			"start":       time.Unix(alert.Start, 0).Format("2006-01-02 15:04"),
+			"end":         time.Unix(alert.End, 0).Format("2006-01-02 15:04"),
+		}
+		alertData = append(alertData, alertItem)
+	}
+
+	return alertData
+}
+
 // getWeatherByCoordinates fetches weather data based on coordinates
 func getWeatherByCoordinates(lat, lon float64) (*WeatherData, error) {
 	weatherUrl := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=%s&units=metric", lat, lon, apiKey)
@@ -676,9 +864,9 @@ func getWeatherByCoordinates(lat, lon float64) (*WeatherData, error) {
 	return &data, nil
 }
 
-// getOneCallData fetches combined weather data using One Call API (premium feature)
+// Modify getOneCallData to match signature
 func getOneCallData(lat, lon float64) (*OneCallData, error) {
-	oneCallUrl := fmt.Sprintf("https://api.openweathermap.org/data/3.0/onecall?lat=%f&lon=%f&exclude=&appid=%s&units=metric", lat, lon, apiKey)
+	oneCallUrl := fmt.Sprintf("https://api.openweathermap.org/data/3.0/onecall?lat=%f&lon=%f&exclude=minutely&appid=%s&units=metric", lat, lon, apiKey)
 	log.Printf("Making One Call API request to URL: %s", oneCallUrl)
 
 	resp, err := http.Get(oneCallUrl)
@@ -3469,7 +3657,7 @@ func main() {
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbUser := getEnv("DB_USER", "weather_user")
-	dbPassword := getEnv("DB_PASSWORD", "harsha03")
+	dbPassword := getEnv("DB_PASSWORD", "Manvitha@02")
 	dbName := getEnv("DB_NAME", "weather_app")
 
 	// Build MySQL DSN string
