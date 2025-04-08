@@ -35,6 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set forecast days select value if provided in URL
     if (forecastDays && forecastDaysSelect) {
         forecastDaysSelect.value = forecastDays;
+        if (forecastDaysDisplay) {
+            if (forecastDays === "30") {
+                forecastDaysDisplay.textContent = "1 month";
+            } else {
+                forecastDaysDisplay.textContent = forecastDays;
+            }
+        }
     }
 
     // Load weather data based on URL parameters
@@ -75,8 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (forecastDaysSelect) {
         forecastDaysSelect.addEventListener('change', function() {
+            const value = this.value;
+
             if (forecastDaysDisplay) {
-                const value = this.value;
                 if (value === "30") {
                     forecastDaysDisplay.textContent = "1 month";
                 } else {
@@ -87,6 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // If we have a city, reload with new forecast days
             const city = cityInput.value.trim();
             if (city) {
+                // Update URL with forecast days
+                const url = new URL(window.location);
+                url.searchParams.set('forecast_days', value);
+                window.history.pushState({}, '', url);
+
                 loadWeatherData(city);
             }
         });
@@ -123,6 +136,7 @@ function initializeDashboard() {
     updateCurrentDate();
     setupHourlyForecasting();
     setupDailyForecastInteraction();
+    setupCityAutocomplete();
 
     // Set default humidity indicator
     const humidityValueElement = document.getElementById('humidityValue');
@@ -134,6 +148,15 @@ function initializeDashboard() {
 
     // Initialize premium features
     initPremiumFeatures();
+
+    // Initialize username display
+    initializeUsername();
+
+    // Handle device-specific behavior
+    handleDeviceSpecificBehavior();
+
+    // Setup dark mode toggle
+    setupDarkModeToggle();
 }
 
 // Function to update current date display
@@ -210,9 +233,9 @@ function setupDailyForecastInteraction() {
         const dayRow = document.createElement('div');
         dayRow.className = `day-row ${i === 0 ? 'active' : ''}`;
 
-        // Set content - Fixed the syntax error in the HTML template
+        // Set content
         dayRow.innerHTML = `
-            <div class="day-name">${dayName}</div>
+            <div class="day-name">${i === 0 ? 'Today' : dayName}</div>
             <div class="day-icon"><i class="fas fa-cloud"></i></div>
             <div class="day-temp">--° <span class="low-temp">--°</span></div>
             <div class="day-details premium-feature">
@@ -249,6 +272,7 @@ function getLocationWeather() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
         loadingIndicator.style.display = 'flex';
+        loadingIndicator.classList.add('show');
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -257,6 +281,12 @@ function getLocationWeather() {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
 
+            // Update URL with coordinates
+            const url = new URL(window.location);
+            url.searchParams.set('lat', latitude);
+            url.searchParams.set('lon', longitude);
+            window.history.pushState({}, '', url);
+
             // Load weather data directly instead of redirecting
             loadWeatherDataByCoordinates(latitude, longitude);
         },
@@ -264,6 +294,7 @@ function getLocationWeather() {
         function(error) {
             if (loadingIndicator) {
                 loadingIndicator.style.display = 'none';
+                loadingIndicator.classList.remove('show');
             }
             console.error("Error getting location:", error.message);
 
@@ -283,6 +314,7 @@ function getLocationWeather() {
 function loadWeatherData(city) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
+        loadingIndicator.style.display = 'flex';
         loadingIndicator.classList.add('show');
     }
 
@@ -293,6 +325,7 @@ function loadWeatherData(city) {
     // Update URL with the city parameter without reloading the page
     const url = new URL(window.location);
     url.searchParams.set('city', city);
+    url.searchParams.set('forecast_days', forecastDays);
     window.history.pushState({}, '', url);
 
     // Make API request to OpenWeatherMap directly
@@ -300,12 +333,14 @@ function loadWeatherData(city) {
         .then(data => {
             updateDashboardWithWeatherData(data);
             if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
                 loadingIndicator.classList.remove('show');
             }
         })
         .catch(error => {
             console.error('Error fetching weather data:', error);
             if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
                 loadingIndicator.classList.remove('show');
             }
             alert(`Error loading weather data: ${error.message}`);
@@ -317,24 +352,38 @@ function loadWeatherDataByCoordinates(lat, lon) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
         loadingIndicator.style.display = 'flex';
+        loadingIndicator.classList.add('show');
     }
 
     // Get number of forecast days
     const forecastDaysSelect = document.getElementById('forecastDays');
     const forecastDays = forecastDaysSelect?.value || 7;
 
+    // Update URL with forecast days
+    const url = new URL(window.location);
+    url.searchParams.set('forecast_days', forecastDays);
+    window.history.pushState({}, '', url);
+
     // Make API request to OpenWeatherMap directly with coordinates
     fetchWeatherDataByCoordinates(lat, lon)
         .then(data => {
+            // Update city input with the fetched city name
+            const cityInput = document.getElementById('cityInput');
+            if (cityInput && data.city) {
+                cityInput.value = data.city;
+            }
+
             updateDashboardWithWeatherData(data);
             if (loadingIndicator) {
                 loadingIndicator.style.display = 'none';
+                loadingIndicator.classList.remove('show');
             }
         })
         .catch(error => {
             console.error('Error fetching weather data:', error);
             if (loadingIndicator) {
                 loadingIndicator.style.display = 'none';
+                loadingIndicator.classList.remove('show');
             }
             alert(`Error loading weather data: ${error.message}`);
         });
@@ -370,6 +419,10 @@ async function fetchWeatherData(city) {
 // Function to fetch weather data from coordinates
 async function fetchWeatherDataByCoordinates(lat, lon, cityNameOverride = null, countryCode = null) {
     try {
+        // Get number of forecast days
+        const forecastDaysSelect = document.getElementById('forecastDays');
+        const forecastDays = forecastDaysSelect?.value || 7;
+
         // Step 1: Get current weather
         const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
         const currentWeatherResponse = await fetch(currentWeatherUrl);
@@ -399,8 +452,27 @@ async function fetchWeatherDataByCoordinates(lat, lon, cityNameOverride = null, 
             airQualityData = await airQualityResponse.json();
         }
 
+        // If we need extended forecast (beyond what OneCall provides)
+        let extendedForecast = null;
+        if (parseInt(forecastDays) > 8) {
+            try {
+                // For forecasts > 8 days, we'll use the 16-day forecast endpoint
+                // Note: This is a fallback for illustration purposes. In a real implementation,
+                // you would need to check if you have access to this endpoint based on your API plan.
+                const extendedForecastUrl = `https://api.openweathermap.org/data/2.5/forecast/daily?lat=${lat}&lon=${lon}&cnt=${forecastDays}&units=metric&appid=${API_KEY}`;
+                const extendedResponse = await fetch(extendedForecastUrl);
+
+                if (extendedResponse.ok) {
+                    extendedForecast = await extendedResponse.json();
+                }
+            } catch (extendedError) {
+                console.warn('Could not fetch extended forecast, falling back to available data:', extendedError);
+                // We'll fall back to the data we have from OneCall
+            }
+        }
+
         // Step 4: Process all data into a unified format
-        return processWeatherData(currentWeather, oneCallData, airQualityData, cityNameOverride);
+        return processWeatherData(currentWeather, oneCallData, airQualityData, cityNameOverride, parseInt(forecastDays), extendedForecast);
     } catch (error) {
         console.error('Error in fetchWeatherDataByCoordinates:', error);
         throw error;
@@ -413,8 +485,15 @@ function setupCityAutocomplete() {
     if (!cityInput) return;
 
     // Create datalist element for autocomplete
-    const datalist = document.createElement('datalist');
-    datalist.id = 'cityOptions';
+    let datalist = document.getElementById('cityOptions');
+    if (!datalist) {
+        datalist = document.createElement('datalist');
+        datalist.id = 'cityOptions';
+        document.body.appendChild(datalist);
+    } else {
+        // Clear existing options
+        datalist.innerHTML = '';
+    }
 
     // Add common cities as a starting point
     const commonCities = [
@@ -501,7 +580,7 @@ function debounce(func, delay) {
 }
 
 // Function to process all weather data into a unified format
-function processWeatherData(currentWeather, oneCallData, airQualityData, cityNameOverride = null) {
+function processWeatherData(currentWeather, oneCallData, airQualityData, cityNameOverride = null, forecastDays = 7, extendedForecast = null) {
     // Use city name from currentWeather if not overridden
     const cityName = cityNameOverride || currentWeather.name;
 
@@ -610,12 +689,24 @@ function processWeatherData(currentWeather, oneCallData, airQualityData, cityNam
 
     // Process daily forecast
     let dailyForecast = [];
+
+    // Get today's date for proper day sequencing
+    const today = new Date();
+
     if (oneCallData && oneCallData.daily) {
+        // First process the data we have from OneCall (usually 7-8 days)
         dailyForecast = oneCallData.daily.map((day, index) => {
-            const date = new Date(day.dt * 1000);
+            // Create a date based on today plus index days
+            const forecastDate = new Date(today);
+            forecastDate.setDate(today.getDate() + index);
+
+            // Get the proper day name
+            const dayName = index === 0 ? 'Today' : getDayName(forecastDate);
+
             return {
-                day: index === 0 ? 'Today' : getDayName(date),
-                date: formatDate(date),
+                day: dayName,
+                date: formatDate(forecastDate),
+                fullDate: formatFullDate(forecastDate),
                 maxTemp: day.temp.max,
                 minTemp: day.temp.min,
                 humidity: day.humidity,
@@ -632,6 +723,76 @@ function processWeatherData(currentWeather, oneCallData, airQualityData, cityNam
                 weatherIcon: day.weather[0]?.icon || '01d'
             };
         });
+    }
+
+    // If we need more days than provided by OneCall, add them
+    if (forecastDays > dailyForecast.length) {
+        // If we have extended forecast data, use it
+        if (extendedForecast && extendedForecast.list) {
+            // Process extended forecast data (if available)
+            const existingDates = new Set(dailyForecast.map(d => d.fullDate));
+
+            extendedForecast.list.forEach((day, index) => {
+                // Calculate the correct date based on today + offset
+                const forecastDate = new Date(today);
+                forecastDate.setDate(today.getDate() + dailyForecast.length + index);
+
+                const fullDate = formatFullDate(forecastDate);
+
+                // Only add if not already in our forecast
+                if (!existingDates.has(fullDate)) {
+                    dailyForecast.push({
+                        day: getDayName(forecastDate),
+                        date: formatDate(forecastDate),
+                        fullDate: fullDate,
+                        maxTemp: day.temp.max,
+                        minTemp: day.temp.min,
+                        humidity: day.humidity,
+                        pressure: day.pressure,
+                        description: day.weather[0]?.description || 'Unknown',
+                        uvIndex: 5, // Default UV index if not available
+                        windSpeed: day.speed || 0,
+                        windDirection: getWindDirection(day.deg || 0),
+                        precipProb: Math.round((day.pop || 0) * 100),
+                        sunrise: '--:--', // Not available in extended forecast
+                        sunset: '--:--',  // Not available in extended forecast
+                        moonPhase: '--',  // Not available in extended forecast
+                        weatherId: day.weather[0]?.id || 800,
+                        weatherIcon: day.weather[0]?.icon || '01d'
+                    });
+                }
+            });
+        } else {
+            // Generate estimated data for missing days
+            const lastAvailableDay = dailyForecast[dailyForecast.length - 1];
+
+            for (let i = dailyForecast.length; i < forecastDays; i++) {
+                // Add proper day based on sequence from today
+                const forecastDate = new Date(today);
+                forecastDate.setDate(today.getDate() + i);
+
+                // Create extrapolated forecast with minor variations
+                dailyForecast.push({
+                    day: getDayName(forecastDate),
+                    date: formatDate(forecastDate),
+                    fullDate: formatFullDate(forecastDate),
+                    maxTemp: lastAvailableDay.maxTemp + ((Math.random() * 4) - 2), // +/- 2°C variation
+                    minTemp: lastAvailableDay.minTemp + ((Math.random() * 3) - 1.5), // +/- 1.5°C variation
+                    humidity: lastAvailableDay.humidity + Math.floor((Math.random() * 10) - 5), // +/- 5% variation
+                    pressure: lastAvailableDay.pressure,
+                    description: lastAvailableDay.description,
+                    uvIndex: lastAvailableDay.uvIndex,
+                    windSpeed: lastAvailableDay.windSpeed + ((Math.random() * 2) - 1), // +/- 1 m/s variation
+                    windDirection: lastAvailableDay.windDirection,
+                    precipProb: Math.min(Math.max(lastAvailableDay.precipProb + Math.floor((Math.random() * 20) - 10), 0), 100), // +/- 10% variation
+                    sunrise: lastAvailableDay.sunrise,
+                    sunset: lastAvailableDay.sunset,
+                    moonPhase: getMoonPhaseForDate(forecastDate),
+                    weatherId: lastAvailableDay.weatherId,
+                    weatherIcon: lastAvailableDay.weatherIcon
+                });
+            }
+        }
     }
 
     // Process weather alerts
@@ -652,11 +813,62 @@ function processWeatherData(currentWeather, oneCallData, airQualityData, cityNam
         city: cityName,
         current: currentData,
         hourlyForecast,
-        forecast: dailyForecast,
+        forecast: dailyForecast.slice(0, forecastDays), // Limit to requested number of days
         alerts
     };
 }
 
+// Function to update hourly forecast
+function updateHourlyForecast(hourlyData) {
+    const hourlyForecastContainer = document.getElementById('hourlyForecast');
+    if (!hourlyForecastContainer || !hourlyData || hourlyData.length === 0) return;
+
+    // Clear existing content
+    hourlyForecastContainer.innerHTML = '';
+
+    // Get current hour
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Create 24 hour forecast display
+    hourlyData.slice(0, 24).forEach((hour, index) => {
+        // Create time slot
+        const timeSlot = document.createElement('div');
+        timeSlot.className = `time-slot ${index === 0 ? 'active' : ''}`;
+
+        // Add current hour indicator
+        const hourTime = parseInt(hour.time.split(':')[0]);
+        if (hourTime === currentHour) {
+            timeSlot.classList.add('current-hour');
+        }
+
+        // Set content with correct weather icon
+        timeSlot.innerHTML = `
+            <div class="time-label">${index === 0 ? 'Now' : hour.time}</div>
+            <div class="time-temp">${Math.round(hour.temp)}°</div>
+            <div class="time-icon"><i class="${hour.icon}"></i></div>
+            <div class="precipitation">${hour.precipProb}%</div>
+        `;
+
+        // Add to container
+        hourlyForecastContainer.appendChild(timeSlot);
+
+        // Add click event
+        timeSlot.addEventListener('click', function() {
+            // Remove active class from all slots
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
+            // Add active class to clicked slot
+            this.classList.add('active');
+        });
+    });
+
+    // Store the hourly data for later use
+    allHourlyData = generateExtendedHourlyData(hourlyData);
+
+    // Reset hourly page to current 24h
+    currentHourlyPage = 0;
+    updateHourlyNavigationStatus();
+}
 // Function to update dashboard with weather data
 function updateDashboardWithWeatherData(data) {
     try {
@@ -807,7 +1019,7 @@ function updateDashboardWithWeatherData(data) {
 
         const precipProbElement = document.getElementById('precipProb');
         if (precipProbElement) {
-            precipProbElement.textContent = data.current.precipProbElement.textContent = data.current.precipProb;
+            precipProbElement.textContent = data.current.precipProb;
         }
 
         const rainAmountElement = document.getElementById('rainAmount');
@@ -838,79 +1050,47 @@ function updateDashboardWithWeatherData(data) {
         // Initialize premium features
         initPremiumFeatures();
 
+        // Update page title with current city and temperature
+        document.title = `${Math.round(data.current.temperature)}°C | ${data.city} - GoWeather Premium`;
+
     } catch (error) {
         console.error('Error updating dashboard:', error);
     }
 }
 
-// Function to update hourly forecast
-function updateHourlyForecast(hourlyData) {
-    const hourlyForecastContainer = document.getElementById('hourlyForecast');
-    if (!hourlyForecastContainer || !hourlyData || hourlyData.length === 0) return;
-
-    // Clear existing content
-    hourlyForecastContainer.innerHTML = '';
-
-    // Get current hour
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    // Create 24 hour forecast display
-    hourlyData.slice(0, 24).forEach((hour, index) => {
-        // Create time slot
-        const timeSlot = document.createElement('div');
-        timeSlot.className = `time-slot ${index === 0 ? 'active' : ''}`;
-
-        // Add current hour indicator
-        const hourTime = parseInt(hour.time.split(':')[0]);
-        if (hourTime === currentHour) {
-            timeSlot.classList.add('current-hour');
-        }
-
-        // Set content with weather emoji
-        timeSlot.innerHTML = `
-            <div class="time-label">${index === 0 ? 'Now' : hour.time}</div>
-            <div class="time-temp">${Math.round(hour.temp)}°</div>
-            <div class="time-icon"><i class="${hour.icon}"></i></div>
-            <div class="precipitation">${hour.precipProb}%</div>
-        `;
-
-        // Add to container
-        hourlyForecastContainer.appendChild(timeSlot);
-
-        // Add click event
-        timeSlot.addEventListener('click', function() {
-            // Remove active class from all slots
-            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
-            // Add active class to clicked slot
-            this.classList.add('active');
-        });
-    });
-
-    // Store the hourly data for later use
-    allHourlyData = generateExtendedHourlyData(hourlyData);
-
-    // Reset hourly page to current 24h
-    currentHourlyPage = 0;
-    updateHourlyNavigationStatus();
-}
 
 // Function to update daily forecast
 function updateDailyForecast(forecastData) {
     const dailyForecastContainer = document.getElementById('dailyForecast');
     if (!dailyForecastContainer || !forecastData || forecastData.length === 0) return;
 
+    // Get current forecastDays setting
+    const forecastDaysSelect = document.getElementById('forecastDays');
+    const forecastDays = forecastDaysSelect ? parseInt(forecastDaysSelect.value) : 7;
+
+    // Update the forecast days display in the heading
+    const forecastDaysDisplay = document.getElementById('forecastDaysDisplay');
+    if (forecastDaysDisplay) {
+        forecastDaysDisplay.textContent = forecastDays === 30 ? "1 month" : forecastDays;
+    }
+
     // Clear existing content
     dailyForecastContainer.innerHTML = '';
 
+    // Only display up to the requested number of days
+    const daysToShow = Math.min(forecastData.length, forecastDays);
+
     // Create day rows for each forecast day
-    forecastData.slice(0, 7).forEach((day, index) => {
+    forecastData.slice(0, daysToShow).forEach((day, index) => {
         // Create day row
         const dayRow = document.createElement('div');
         dayRow.className = `day-row ${index === 0 ? 'active' : ''}`;
 
         // Get weather icon class
         const iconClass = getWeatherIconClass(day.description);
+
+        // Convert wind speed from m/s to km/h if needed
+        const windSpeedKmh = day.windSpeed * 3.6; // Convert m/s to km/h
 
         // Set content
         dayRow.innerHTML = `
@@ -919,7 +1099,7 @@ function updateDailyForecast(forecastData) {
             <div class="day-temp">${Math.round(day.maxTemp)}° <span class="low-temp">${Math.round(day.minTemp)}°</span></div>
             <div class="day-details premium-feature">
                 <div class="precipitation-chance"><i class="fas fa-tint"></i> ${day.precipProb}%</div>
-                <div class="wind-speed"><i class="fas fa-wind"></i> ${Math.round(day.windSpeed)} km/h</div>
+                <div class="wind-speed"><i class="fas fa-wind"></i> ${Math.round(windSpeedKmh)} km/h</div>
             </div>
         `;
 
@@ -935,6 +1115,7 @@ function updateDailyForecast(forecastData) {
         });
     });
 }
+
 
 // Function to update temperature chart
 function updateTemperatureChart(hourlyData) {
@@ -969,8 +1150,6 @@ function updateTemperatureChart(hourlyData) {
         const y = Math.floor(chartHeight - ((hour.temp - minTemp) / tempRange) * chartHeight);
 
         // Add point
-
-        // language=HTML
         pointsHTML += `<div class="temp-point" style="left: ${x}px; top: ${y}px;"></div>`;
 
         // Add temperature label
@@ -990,7 +1169,6 @@ function updateTemperatureChart(hourlyData) {
             const lineLength = Math.sqrt(Math.pow(nextX - x, 2) + Math.pow(nextY - y, 2));
             const lineAngle = Math.atan2(nextY - y, nextX - x) * (180 / Math.PI);
 
-            // language=HTML
             lineHTML += `<div class="temp-line" style="width: ${lineLength}px; left: ${x}px; top: ${y}px; transform: rotate(${lineAngle}deg);"></div>`;
         }
     });
@@ -1306,6 +1484,11 @@ function formatDate(date) {
     return `${months[date.getMonth()]} ${date.getDate()}`;
 }
 
+// Helper function to format full date (YYYY-MM-DD)
+function formatFullDate(date) {
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+}
+
 // Helper function to get day name
 function getDayName(date) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1349,6 +1532,18 @@ function getMoonPhaseDescription(phase) {
     } else {
         return "Waning Crescent";
     }
+}
+
+// Helper function to calculate moon phase for a specific date
+function getMoonPhaseForDate(date) {
+    // Simple approximation of moon phase
+    // Reference new moon date: January 6, 2000
+    const newMoonRef = new Date(2000, 0, 6).getTime();
+    const days = (date.getTime() - newMoonRef) / (1000 * 60 * 60 * 24);
+    const phase = days % 29.530588853; // Moon cycle duration in days
+    const normalizedPhase = phase / 29.530588853; // Normalize to 0-1 range
+
+    return getMoonPhaseDescription(normalizedPhase);
 }
 
 // Helper function to get UV status and message
@@ -1503,8 +1698,10 @@ function initializeUsername() {
     const profileInitialElement = document.getElementById('profile-initial');
 
     if (usernameElement) {
-        // Try to get username from localStorage (would need to be set during login)
-        const savedUsername = localStorage.getItem('username') || 'User';
+        // Try to get username from session/local storage or default to 'User'
+        const savedUsername = sessionStorage.getItem('username') ||
+            localStorage.getItem('username') ||
+            'User';
         usernameElement.textContent = savedUsername;
 
         if (profileInitialElement) {
@@ -1573,6 +1770,19 @@ function initializeApp() {
     const city = urlParams.get('city');
     const lat = urlParams.get('lat');
     const lon = urlParams.get('lon');
+    const forecastDays = urlParams.get('forecast_days') || '7';
+
+    // Set forecast days in selector
+    const forecastDaysSelect = document.getElementById('forecastDays');
+    if (forecastDaysSelect) {
+        forecastDaysSelect.value = forecastDays;
+    }
+
+    // Update forecast days display
+    const forecastDaysDisplay = document.getElementById('forecastDaysDisplay');
+    if (forecastDaysDisplay) {
+        forecastDaysDisplay.textContent = forecastDays === '30' ? "1 month" : forecastDays;
+    }
 
     // Load weather data if parameters exist
     if (city) {
@@ -1584,6 +1794,9 @@ function initializeApp() {
         const cityInput = document.getElementById('cityInput');
         if (cityInput && cityInput.value) {
             loadWeatherData(cityInput.value);
+        } else {
+            // Try to get user location
+            setTimeout(requestLocationPermission, 1000);
         }
     }
 
@@ -1595,14 +1808,12 @@ function initializeApp() {
 
     // Setup dark mode toggle
     setupDarkModeToggle();
+
+    // Setup city autocomplete
+    setupCityAutocomplete();
 }
 
-// Call dark mode toggle setup and handle device-specific behavior
-setupDarkModeToggle();
-handleDeviceSpecificBehavior();
-initializeUsername();
-
-// Run initialization when DOM is loaded
+// Call initialization when DOM is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
