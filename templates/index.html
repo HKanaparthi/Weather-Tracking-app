@@ -4,20 +4,88 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GoWeather - Your Weather Companion</title>
-  <link rel="stylesheet" href="../static/css/index.css">
+  <link rel="stylesheet" href="/static/css/index.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Added Montserrat font for a more modern look -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Location popup styling */
+    .location-popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+
+    .location-popup.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .location-popup p {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .popup-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .allow-btn, .deny-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .allow-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .allow-btn:hover {
+      background-color: #3e8e41;
+    }
+
+    .deny-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .deny-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    .allow-btn:active, .deny-btn:active {
+      transform: scale(0.95);
+    }
+  </style>
 </head>
 <body>
 <!-- Header -->
 <header>
   <div class="logo-container">
-    <a href="/" ><img src="../static/Mainlogo.png" alt="Go Weather Logo" class="site-logo"> </a>
+    <a href="/" ><img src="/static/Mainlogo.png" alt="Go Weather Logo" class="site-logo"> </a>
   </div>
   <nav>
-    <a href="login.html" class="login-btn">Login</a>
-    <a href="signup" class="signup-btn">Signup</a>
+    <a href="/login" class="login-btn">Login</a>
+    <a href="/signup" class="signup-btn">Signup</a>
   </nav>
 </header>
 
@@ -49,7 +117,7 @@
       <p>Get Accurate weather information and many more</p>
     </div>
     <div class="service-image">
-      <img src="../static/firstPhoto.jpeg" alt="Weather device" class="device-img">
+      <img src="/static/firstPhoto.jpeg" alt="Weather device" class="device-img">
       <div class="overlay-text top-right">Get Alerts on weather</div>
       <div class="overlay-text middle-left">Data at your fingertips</div>
       <div class="overlay-text bottom-right">Compare weather</div>
@@ -78,7 +146,7 @@
       <p>Travel smarter with accurate, location-based weather insights. At GoWeather, we help you make informed travel decisions by providing reliable historical weather data for any destination around the globe</p>
     </div>
     <div class="travel-image">
-      <img src="../static/TripPhoto.jpeg" alt="Travel weather" class="travel-img">
+      <img src="/static/TripPhoto.jpeg" alt="Travel weather" class="travel-img">
     </div>
   </div>
 </section>
@@ -104,19 +172,107 @@
   </div>
 </footer>
 
+<!-- Word cycling functionality -->
 <script>
   // Location popup functionality
   document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded - initializing location functionality");
+
+    // Show location popup after a delay
     setTimeout(function() {
       document.querySelector('.location-popup').classList.add('show');
+      console.log("Location popup shown");
     }, 2000);
 
+    // Handle "Allow" button click
     document.querySelector('.allow-btn').addEventListener('click', function() {
+      console.log("Allow button clicked");
       document.querySelector('.location-popup').classList.remove('show');
+
+      // Request geolocation from browser
+      if (navigator.geolocation) {
+        console.log("Browser supports geolocation, requesting position...");
+        navigator.geolocation.getCurrentPosition(
+                // Success callback
+                function(position) {
+                  const latitude = position.coords.latitude;
+                  const longitude = position.coords.longitude;
+
+                  console.log("Geolocation successful:", latitude, longitude);
+                  console.log("Making API request to:", `/api/nearby-locations?lat=${latitude}&lon=${longitude}`);
+
+                  // Check if multiple locations are available nearby
+                  fetch(`/api/nearby-locations?lat=${latitude}&lon=${longitude}`)
+                          .then(response => {
+                            console.log("API response status:", response.status);
+                            console.log("API response headers:", response.headers);
+                            return response.text().then(text => {
+                              // Log the raw response for debugging
+                              console.log("Raw API response:", text);
+
+                              // Try to parse as JSON if possible
+                              try {
+                                return JSON.parse(text);
+                              } catch (e) {
+                                console.error("Error parsing JSON:", e);
+                                throw new Error(`Invalid JSON response: ${text}`);
+                              }
+                            });
+                          })
+                          .then(data => {
+                            console.log("Nearby locations data:", data);
+                            if (data.locations && data.locations.length > 1) {
+                              // Multiple locations found, redirect to location options
+                              console.log("Multiple locations found, redirecting to options page");
+                              window.location.href = `/location-options?lat=${latitude}&lon=${longitude}`;
+                            } else {
+                              // Single location or no ambiguity, show weather directly
+                              console.log("Single location found, redirecting to weather page");
+                              window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
+                            }
+                          })
+                          .catch(error => {
+                            console.error("Error checking nearby locations:", error);
+                            // Log detailed error information
+                            console.error("Error details:", error.message);
+                            console.log("Error occurred, falling back to direct weather display");
+                            window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
+                          });
+                },
+                // Error callback
+                function(error) {
+                  console.error("Error getting location:", error.message, "(Code:", error.code, ")");
+
+                  // Error codes:
+                  // 1: PERMISSION_DENIED
+                  // 2: POSITION_UNAVAILABLE
+                  // 3: TIMEOUT
+
+                  // Redirect to manual location selection
+                  window.location.href = "/location-options";
+                },
+                // Options
+                {
+                  enableHighAccuracy: true,
+                  timeout: 10000,
+                  maximumAge: 0
+                }
+        );
+      } else {
+        // Browser doesn't support geolocation
+        console.error("Browser doesn't support geolocation");
+        alert("Your browser doesn't support geolocation. Please try a different browser or enter your location manually.");
+        // Redirect to manual location entry page
+        window.location.href = "/location-options";
+      }
     });
 
+    // Handle "Deny" button click
     document.querySelector('.deny-btn').addEventListener('click', function() {
+      console.log("Deny button clicked");
       document.querySelector('.location-popup').classList.remove('show');
+      // Redirect to manual location selection
+      window.location.href = "/location-options";
     });
 
     // Word cycling functionality
@@ -142,5 +298,7 @@
     setInterval(changeWord, 2000);
   });
 </script>
+
+<!-- Include the location handler script separately -->
 </body>
 </html>

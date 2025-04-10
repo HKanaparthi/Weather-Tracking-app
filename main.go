@@ -3657,7 +3657,7 @@ func main() {
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbUser := getEnv("DB_USER", "weather_user")
-	dbPassword := getEnv("DB_PASSWORD", "Manvitha@02")
+	dbPassword := getEnv("DB_PASSWORD", "harsha03")
 	dbName := getEnv("DB_NAME", "weather_app")
 
 	// Build MySQL DSN string
@@ -3711,6 +3711,119 @@ func main() {
 	// Add this missing route
 	router.GET("/login", middleware.RedirectIfLoggedIn(), authHandler.GetLogin)
 	// Add these routes in your main.go near the other API routes section
+
+	// Add this to your main.go file where you set up other routes
+
+	// Replace the problematic HTTP handler registration
+	// DELETE these lines:
+	// http.HandleFunc("/api/nearby-locations", handlers.HandleNearbyLocations)
+	// http.HandleFunc("/location-options.html", handlers.RenderLocationOptions)
+
+	// ADD these lines instead:
+	router.GET("/api/nearby-locations", func(c *gin.Context) {
+		// Get latitude and longitude from query parameters
+		latStr := c.Query("lat")
+		lonStr := c.Query("lon")
+
+		// Validate parameters
+		if latStr == "" || lonStr == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing lat or lon parameters"})
+			return
+		}
+
+		// Parse latitude and longitude
+		lat, err := strconv.ParseFloat(latStr, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid latitude value"})
+			return
+		}
+
+		lon, err := strconv.ParseFloat(lonStr, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid longitude value"})
+			return
+		}
+
+		// In a real application, you would query a database or external API
+		// to get nearby locations. Here we'll use your existing function.
+		nearbyLocations, err := getNearbyLocations(lat, lon)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Create response
+		response := struct {
+			Locations []struct {
+				Name     string  `json:"name"`
+				State    string  `json:"state,omitempty"`
+				Country  string  `json:"country"`
+				Lat      float64 `json:"lat"`
+				Lon      float64 `json:"lon"`
+				Distance float64 `json:"distance"`
+			} `json:"locations"`
+		}{
+			Locations: nearbyLocations,
+		}
+
+		c.JSON(http.StatusOK, response)
+	})
+
+	// Route for location options page
+	router.GET("/location-options", func(c *gin.Context) {
+		// Get URL parameters
+		latParam := c.Query("lat")
+		lonParam := c.Query("lon")
+
+		log.Printf("Rendering location-options template with lat=%s, lon=%s", latParam, lonParam)
+
+		// Get user if logged in
+		var user *models.User
+		userID, exists := c.Get("user_id")
+		if exists {
+			userStore := c.MustGet("user_store").(models.UserStore)
+			var err error
+			user, err = userStore.GetUserByID(userID.(int))
+			if err != nil {
+				log.Printf("Error getting user: %v", err)
+			}
+		}
+
+		// Create data for locations if coordinates provided
+		var locations []struct {
+			Name     string  `json:"name"`
+			State    string  `json:"state,omitempty"`
+			Country  string  `json:"country"`
+			Lat      float64 `json:"lat"`
+			Lon      float64 `json:"lon"`
+			Distance float64 `json:"distance"`
+		}
+
+		if latParam != "" && lonParam != "" {
+			lat, errLat := strconv.ParseFloat(latParam, 64)
+			lon, errLon := strconv.ParseFloat(lonParam, 64)
+
+			if errLat == nil && errLon == nil {
+				// Get nearby locations
+				nearbyLocations, err := getNearbyLocations(lat, lon)
+				if err == nil {
+					locations = nearbyLocations
+				} else {
+					log.Printf("Error getting nearby locations: %v", err)
+				}
+			}
+		}
+
+		// Prepare data with appropriate attribute names for the template
+		c.HTML(http.StatusOK, "location-options.html", gin.H{
+			"title":     "Select Your Location",
+			"User":      user,
+			"locations": locations,
+			"lat":       latParam,
+			"lon":       lonParam,
+		})
+	})
+
 	router.GET("/api/geocode", func(c *gin.Context) {
 		location := c.Query("location")
 		if location == "" {

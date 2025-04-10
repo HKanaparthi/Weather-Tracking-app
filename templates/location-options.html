@@ -4,226 +4,404 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Your Location - GoWeather</title>
-    <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            background-color: #c4d7e9;
-            background-image: linear-gradient(135deg, #c4d7e9 0%, #a7c5e3 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            font-family: 'Arial', sans-serif;
-            color: #333;
+        /* Black and Yellow Theme Colors */
+        :root {
+            --bg-primary: #121212;
+            --bg-card: #1e1e1e;
+            --bg-hover: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-color: #f39c12; /* Yellow highlight */
+            --accent-hover: #e67e22; /* Darker yellow for hover */
+            --border-color: #333333;
+            --success-color: #f39c12; /* Yellow for success elements */
+            --success-hover: #e67e22; /* Darker yellow for hover */
         }
 
-        .header {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header styles */
+        header {
+            background-color: var(--bg-card);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background-color: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .logo {
+        .logo-container {
             display: flex;
             align-items: center;
-            font-size: 24px;
-            font-weight: bold;
         }
 
-        .logo i {
-            margin-right: 10px;
-            color: #f1c40f;
+        .site-logo {
+            height: 35px; /* Smaller logo */
+            width: auto;
         }
 
-        .auth-buttons a {
-            padding: 8px 15px;
-            margin-left: 10px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
+        nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link, .login-btn, .signup-btn, .logout-btn {
+            padding: 8px 16px;
             text-decoration: none;
-            color: #333;
-            font-weight: bold;
-            transition: all 0.3s;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
-        .auth-buttons a:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+        .nav-link {
+            color: var(--text-primary);
+            background-color: transparent;
+            border: 1px solid var(--border-color);
         }
 
-        .container {
+        .nav-link:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--accent-color);
+        }
+
+        .login-btn {
+            color: var(--text-primary);
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+        }
+
+        .login-btn:hover {
+            background-color: var(--accent-color);
+            color: #000000; /* Black text on yellow button */
+        }
+
+        .signup-btn {
+            color: #000000; /* Black text on yellow button */
+            background-color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .signup-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .logout-btn {
+            color: var(--text-primary);
+            background-color: transparent;
+            border: 1px solid #f44336;
+        }
+
+        .logout-btn:hover {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Location options container */
+        .location-options-container {
             max-width: 800px;
             margin: 40px auto;
-            padding: 30px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
         }
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #333;
-        }
-
-        p.description {
+        .location-title {
             text-align: center;
             margin-bottom: 30px;
-            color: #555;
-            line-height: 1.6;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .location-options {
-            display: grid;
-            gap: 15px;
+        .location-list {
+            list-style: none;
+            padding: 0;
         }
 
-        .location-card {
-            background-color: rgba(255, 255, 255, 0.4);
-            border-radius: 10px;
-            padding: 20px;
+        .location-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: #333;
+            transition: all 0.2s;
         }
 
-        .location-card:hover {
-            background-color: rgba(255, 255, 255, 0.6);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .location-info {
-            flex: 1;
+        .location-item:hover {
+            background-color: var(--bg-hover);
+            cursor: pointer;
+            border-left: 3px solid var(--accent-color);
         }
 
         .location-name {
             font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .location-detail {
-            color: #666;
+        .location-details {
             font-size: 14px;
+            color: var(--text-secondary);
         }
 
-        .distance {
+        .location-distance {
+            font-size: 14px;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .manual-search {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .manual-search input {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            width: 70%;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .manual-search input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.2);
+        }
+
+        .manual-search button {
+            padding: 12px 20px;
+            background-color: var(--accent-color);
+            color: #000000; /* Black text on yellow button */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
-            color: #3498db;
-            min-width: 80px;
-            text-align: right;
+            margin-left: 10px;
+            transition: all 0.2s;
         }
 
-        .back-link {
+        .manual-search button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .manual-search button:active {
+            transform: translateY(0);
+        }
+
+        .back-button {
             display: block;
             text-align: center;
-            margin-top: 30px;
-            color: #3498db;
+            margin-top: 20px;
+            color: var(--accent-color);
             text-decoration: none;
+            padding: 8px;
         }
 
-        .back-link:hover {
+        .back-button:hover {
             text-decoration: underline;
+            color: var(--accent-hover);
         }
 
-        .search-form {
-            margin-top: 30px;
+        /* Message when no locations found */
+        .no-locations-message {
             text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
         }
 
-        .search-input {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px 15px;
-            border-radius: 25px;
-            border: none;
-            font-size: 16px;
-            background-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .location-options-container {
+                margin: 20px 10px;
+                padding: 15px;
+            }
 
-        .search-button {
-            padding: 12px 20px;
-            margin-left: 10px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+            .manual-search {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
 
-        .search-button:hover {
-            background-color: #2980b9;
+            .manual-search input {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .manual-search button {
+                margin-left: 0;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            nav {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
 <body>
-<div class="header">
-    <a href="/" class="logo">
-        <i class="fas fa-cloud-sun"></i>
-        <span>GoWeather</span>
-    </a>
-    <div class="auth-buttons">
-        {{if .User}}
-        <span>Welcome, {{.User.Name}}</span>
-        <a href="/profile">Profile</a>
-        <a href="/logout">Logout</a>
-        {{else}}
-        <a href="/login">Login</a>
-        <a href="/signup">Sign Up</a>
-        {{end}}
+<header>
+    <div class="logo-container">
+        <a href="/"><img src="/static/Mainlogo.png" alt="GoWeather Logo" class="site-logo"></a>
     </div>
-</div>
+    <nav>
+        {{if .User}}
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/profile" class="nav-link">Profile</a>
+        <a href="/logout" class="logout-btn">Logout</a>
+        {{else}}
+        <a href="/login" class="login-btn">Login</a>
+        <a href="/signup" class="signup-btn">Signup</a>
+        {{end}}
+    </nav>
+</header>
 
-<div class="container">
-    <h1>Select Your Location</h1>
-    <p class="description">
-        We found multiple locations near you. Please select the one that best matches your location
-        to get accurate weather information.
-    </p>
+<div class="location-options-container">
+    <h1 class="location-title">Select Your Location</h1>
 
-    <div class="location-options">
+    {{if .locations}}
+    <ul class="location-list" id="locationList">
         {{range .locations}}
-        <a href="/weather?lat={{.Lat}}&lon={{.Lon}}" class="location-card">
-            <div class="location-info">
-                <div class="location-name">{{.Name}}</div>
-                <div class="location-detail">
+        <li class="location-item" data-lat="{{.Lat}}" data-lon="{{.Lon}}">
+            <div>
+                <div class="location-name">
+                    <i class="fas fa-map-marker-alt" style="margin-right: 8px; color: var(--accent-color);"></i>
+                    {{.Name}}
+                </div>
+                <div class="location-details">
                     {{if .State}}{{.State}}, {{end}}{{.Country}}
                 </div>
             </div>
-            <div class="distance">
-            {{if eq .Distance 0.0}}
-            Current
-            {{else if lt .Distance 15.0}}
-            In City
-            {{else}}
-            {{.Distance}} km
-            {{end}}
-        </div>
-
-        </a>
+            <div class="location-distance">
+                <i class="fas fa-route" style="margin-right: 5px;"></i>
+                {{.Distance}} km
+            </div>
+        </li>
         {{end}}
+    </ul>
+    {{else}}
+    <p class="no-locations-message">
+        <i class="fas fa-map-marked-alt" style="font-size: 2rem; margin-bottom: 15px; display: block; color: var(--accent-color);"></i>
+        No locations found based on your coordinates. Please search manually below.
+    </p>
+    {{end}}
+
+    <div class="manual-search">
+        <input type="text" id="citySearch" placeholder="Enter city name...">
+        <button id="searchButton">
+            <i class="fas fa-search" style="margin-right: 5px;"></i>
+            Search
+        </button>
     </div>
 
-    <div class="search-form">
-        <form action="/weather" method="GET">
-            <input type="text" name="city" class="search-input" placeholder="Or search for a specific city">
-            <button type="submit" class="search-button">Search</button>
-        </form>
-    </div>
-
-    <a href="/?from=location_options" class="back-link">
-        <i class="fas fa-arrow-left"></i> Back to Home
+    <a href="/?from=location_options" class="back-button">
+        <i class="fas fa-arrow-left" style="margin-right: 5px;"></i>
+        Back to Home
     </a>
-
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Location options page loaded');
+
+        // Handle location selection from list
+        const locationItems = document.querySelectorAll('.location-item');
+        locationItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const lat = this.getAttribute('data-lat');
+                const lon = this.getAttribute('data-lon');
+                console.log(`Selected location with coordinates: ${lat}, ${lon}`);
+
+                // Add visual feedback when clicked
+                this.style.backgroundColor = 'var(--accent-color)';
+                this.style.color = '#000000';
+
+                // Check if user is logged in
+                const isLoggedIn = {{if .User}}true{{else}}false{{end}};
+
+                setTimeout(() => {
+                    if (isLoggedIn) {
+                        // If logged in, go to dashboard
+                        window.location.href = `/dashboard?lat=${lat}&lon=${lon}`;
+                    } else {
+                        // If not logged in, go to weather page
+                        window.location.href = `/weather?lat=${lat}&lon=${lon}`;
+                    }
+                }, 200);
+            });
+        });
+
+        // Handle manual search
+        const searchButton = document.getElementById('searchButton');
+        const citySearchInput = document.getElementById('citySearch');
+
+        searchButton.addEventListener('click', function() {
+            const city = citySearchInput.value.trim();
+            if (city) {
+                console.log(`Searching for city: ${city}`);
+
+                // Add loading state to button
+                searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+                searchButton.disabled = true;
+
+                // Check if user is logged in
+                const isLoggedIn = {{if .User}}true{{else}}false{{end}};
+
+                setTimeout(() => {
+                    if (isLoggedIn) {
+                        // If logged in, go to dashboard
+                        window.location.href = `/dashboard?city=${encodeURIComponent(city)}`;
+                    } else {
+                        // If not logged in, go to weather page
+                        window.location.href = `/weather?city=${encodeURIComponent(city)}`;
+                    }
+                }, 300);
+            } else {
+                alert('Please enter a city name');
+            }
+        });
+
+        // Allow pressing Enter in the search input
+        citySearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+    });
+</script>
 </body>
 </html>
