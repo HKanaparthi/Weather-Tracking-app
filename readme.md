@@ -2,7 +2,6 @@
 # 🌤️ GoWeather Premium - Weather Tracking Dashboard
 
 [![Go Version](https://img.shields.io/badge/Go-1.20+-00ADD8?logo=go&logoColor=white)](https://golang.org/)  
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
 [![OpenWeatherMap](https://img.shields.io/badge/API-OpenWeatherMap-orange)](https://openweathermap.org/api)
 
 **GoWeather Premium** is a modern, responsive weather monitoring web application built using **Go (Gin framework)** and **MySQL**. It integrates with **OpenWeatherMap APIs** to deliver real-time and historical weather data, air quality, UV index, and local time tracking — all wrapped in a sleek, animated dashboard.
