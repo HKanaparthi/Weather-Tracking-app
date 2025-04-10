@@ -42,7 +42,7 @@ weather-tracking-app/
 ├── models/
 │   └── user.go
 ├── handlers/
-├── static/
+├── static/css
 │   └── dashboard.css
 ├── templates/
 │   └── dashboard.html
