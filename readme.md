@@ -24,7 +24,7 @@
 
 ## 🛠️ Tech Stack
 
-| Layer        | Technology                              |
+| Layer        | Technology                               |
 |--------------|------------------------------------------|
 | **Backend**  | Go (Gin Framework), MySQL                |
 | **Frontend** | HTML, CSS (custom & responsive), JS      |
