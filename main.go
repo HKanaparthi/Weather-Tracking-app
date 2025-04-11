@@ -3630,8 +3630,14 @@ func main() {
 	// Create router with default middleware
 	router := gin.Default()
 
-	// Set up template functions before loading templates
+	// Set up template helpers before loading templates
 	setupTemplateHelpers(router)
+
+	// Create HTTP mux for standard library handlers
+	mux := http.NewServeMux()
+
+	// Register travel weather routes with the standard HTTP mux
+	handlers.RegisterTravelWeatherRoutes(mux)
 
 	// Set up the session store with a secure secret
 	store := cookie.NewStore([]byte("your-unique-secret-key-change-this"))
@@ -3644,7 +3650,6 @@ func main() {
 	router.Use(sessions.Sessions("weather_session", store))
 
 	// Set the router to use HTML templates
-
 	router.LoadHTMLGlob("templates/*.html")
 
 	// Serve static files
@@ -3678,6 +3683,9 @@ func main() {
 	var weatherService = services.NewWeatherService(apiKey)
 	var activityService = services.NewActivityService(apiKey) // Using your existing constructor
 
+	// Initialize travel weather service
+	_ = services.NewTravelWeatherService(weatherService)
+
 	// Create weather handler with services
 	weatherHandler := handlers.NewWeatherHandler(userStore, weatherService, activityService)
 
@@ -3686,6 +3694,7 @@ func main() {
 		c.Set("user_store", userStore)
 		c.Next()
 	})
+
 	// Global middleware to check for user_id in session and set it in context
 	router.Use(func(c *gin.Context) {
 		session := sessions.Default(c)
@@ -3708,18 +3717,11 @@ func main() {
 	router.GET("/login.html", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	})
+
 	// Add this missing route
 	router.GET("/login", middleware.RedirectIfLoggedIn(), authHandler.GetLogin)
+
 	// Add these routes in your main.go near the other API routes section
-
-	// Add this to your main.go file where you set up other routes
-
-	// Replace the problematic HTTP handler registration
-	// DELETE these lines:
-	// http.HandleFunc("/api/nearby-locations", handlers.HandleNearbyLocations)
-	// http.HandleFunc("/location-options.html", handlers.RenderLocationOptions)
-
-	// ADD these lines instead:
 	router.GET("/api/nearby-locations", func(c *gin.Context) {
 		// Get latitude and longitude from query parameters
 		latStr := c.Query("lat")
@@ -3900,6 +3902,10 @@ func main() {
 	// In main.go
 	router.GET("/activities", activityHandler.GetActivitiesPageHandler)
 	router.GET("/weather-impact", activityHandler.GetActivitiesPageHandler)
+
+	// Add a route that uses the standard HTTP handler for travel weather
+	router.GET("/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherHandler)))
+	router.GET("/api/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherAPIHandler)))
 
 	router.POST("/signup", authHandler.PostSignup)
 	router.GET("/logout", authHandler.Logout)
