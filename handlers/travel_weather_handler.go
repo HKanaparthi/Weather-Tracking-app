@@ -28,15 +28,22 @@ type TravelWeatherResponse struct {
 
 // TravelLocationWeather represents weather data for a specific location
 type TravelLocationWeather struct {
-	Location string            `json:"location"`
-	Weather  TravelWeatherData `json:"weather"`
-	Timezone TimezoneData      `json:"timezone"`
-	Forecast []ForecastDay     `json:"forecast"`
+	Location    string            `json:"location"`
+	Weather     TravelWeatherData `json:"weather"`
+	Timezone    TimezoneData      `json:"timezone"`
+	Forecast    []ForecastDay     `json:"forecast"`
+	Coordinates Coordinates       `json:"coordinates"` // Added for map functionality
+}
+
+// Coordinates represents the geographical coordinates of a location
+type Coordinates struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
 }
 
 // TravelWeatherData represents current weather conditions
 type TravelWeatherData struct {
-	Temperature   float64 `json:"temperature"`
+	Temperature   float64 `json:"temperature"` // Now in Celsius
 	Condition     string  `json:"condition"`
 	WindSpeed     float64 `json:"wind_speed"`
 	Humidity      int     `json:"humidity"`
@@ -54,8 +61,8 @@ type TimezoneData struct {
 type ForecastDay struct {
 	Day       string  `json:"day"`
 	Condition string  `json:"condition"`
-	High      float64 `json:"high"`
-	Low       float64 `json:"low"`
+	High      float64 `json:"high"` // Now in Celsius
+	Low       float64 `json:"low"`  // Now in Celsius
 }
 
 // TravelAdviceData contains travel suggestions based on weather
@@ -207,10 +214,15 @@ func TravelWeatherAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
+// Convert Fahrenheit to Celsius
+func fahrenheitToCelsius(fahrenheit float64) float64 {
+	return (fahrenheit - 32) * 5 / 9
+}
+
 // getLocationWeather gets weather data for a specific location
 func getLocationWeather(location string, date time.Time, apiKey string) (TravelLocationWeather, error) {
-	// Call OpenWeather API for current weather
-	currentWeatherURL := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=imperial",
+	// Use metric units (Celsius) instead of imperial (Fahrenheit)
+	currentWeatherURL := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric",
 		location, apiKey)
 
 	resp, err := http.Get(currentWeatherURL)
@@ -228,8 +240,8 @@ func getLocationWeather(location string, date time.Time, apiKey string) (TravelL
 		return TravelLocationWeather{}, fmt.Errorf("failed to decode weather response: %v", err)
 	}
 
-	// Get forecast data
-	forecastURL := fmt.Sprintf("https://api.openweathermap.org/data/2.5/forecast?q=%s&appid=%s&units=imperial",
+	// Get forecast data (also in metric units)
+	forecastURL := fmt.Sprintf("https://api.openweathermap.org/data/2.5/forecast?q=%s&appid=%s&units=metric",
 		location, apiKey)
 
 	forecastResp, err := http.Get(forecastURL)
@@ -268,10 +280,16 @@ func getLocationWeather(location string, date time.Time, apiKey string) (TravelL
 	// Process forecast days
 	forecastDays := processForecastDays(forecast, date)
 
+	// Get coordinates from the weather response
+	coordinates := Coordinates{
+		Lat: weatherResp.Coord.Lat,
+		Lon: weatherResp.Coord.Lon,
+	}
+
 	return TravelLocationWeather{
 		Location: weatherResp.Name,
 		Weather: TravelWeatherData{
-			Temperature:   weatherResp.Main.Temp,
+			Temperature:   weatherResp.Main.Temp, // Already in Celsius from API
 			Condition:     weatherCondition,
 			WindSpeed:     weatherResp.Wind.Speed,
 			Humidity:      weatherResp.Main.Humidity,
@@ -282,7 +300,8 @@ func getLocationWeather(location string, date time.Time, apiKey string) (TravelL
 			Sunrise:     sunriseTime.Format("3:04 PM"),
 			Sunset:      sunsetTime.Format("3:04 PM"),
 		},
-		Forecast: forecastDays,
+		Forecast:    forecastDays,
+		Coordinates: coordinates, // Include coordinates in the response
 	}, nil
 }
 
@@ -302,8 +321,8 @@ func processForecastDays(forecast ForecastResponse, date time.Time) []ForecastDa
 			dailyMap[dateStr] = &ForecastDay{
 				Day:       dayName,
 				Condition: item.Weather[0].Description,
-				High:      item.Main.TempMax,
-				Low:       item.Main.TempMin,
+				High:      item.Main.TempMax, // Already in Celsius from API
+				Low:       item.Main.TempMin, // Already in Celsius from API
 			}
 		} else {
 			// Update min/max temperatures if needed
@@ -344,8 +363,9 @@ func processForecastDays(forecast ForecastResponse, date time.Time) []ForecastDa
 			low = lastDay.Low + (float64(dayIndex%3) - 1)
 		} else {
 			condition = "Clear sky"
-			high = 75.0
-			low = 60.0
+			// Default temperatures in Celsius instead of Fahrenheit
+			high = 24.0 // ~75°F in Celsius
+			low = 15.5  // ~60°F in Celsius
 		}
 
 		result = append(result, ForecastDay{
@@ -366,22 +386,23 @@ func generateTravelAdvice(origin, destination TravelLocationWeather, stops []Tra
 	// Basic items everyone needs
 	packingSuggestions = append(packingSuggestions, "Travel documents", "Phone charger", "Water bottle")
 
-	// Temperature-based suggestions
+	// Temperature-based suggestions (adjusted for Celsius)
 	maxTemp := math.Max(origin.Weather.Temperature, destination.Weather.Temperature)
 	minTemp := math.Min(origin.Weather.Temperature, destination.Weather.Temperature)
 
-	if maxTemp > 80 {
+	// Convert Fahrenheit thresholds to Celsius
+	if maxTemp > 26.7 { // > 80°F
 		packingSuggestions = append(packingSuggestions, "Sunscreen", "Sunglasses", "Hat", "Light clothing")
-	} else if maxTemp > 70 {
+	} else if maxTemp > 21.1 { // > 70°F
 		packingSuggestions = append(packingSuggestions, "Light jacket", "Sunglasses")
-	} else if maxTemp > 50 {
+	} else if maxTemp > 10 { // > 50°F
 		packingSuggestions = append(packingSuggestions, "Medium jacket", "Layers of clothing")
 	} else {
 		packingSuggestions = append(packingSuggestions, "Heavy coat", "Gloves", "Warm hat", "Scarf")
 	}
 
-	// If significant temperature difference between locations
-	if maxTemp-minTemp > 20 {
+	// If significant temperature difference between locations (adjusted for Celsius)
+	if maxTemp-minTemp > 11.1 { // > 20°F in Celsius
 		packingSuggestions = append(packingSuggestions, "Versatile clothing for temperature changes")
 	}
 
@@ -400,10 +421,10 @@ func generateTravelAdvice(origin, destination TravelLocationWeather, stops []Tra
 		}
 	}
 
-	// Generate weather advisory
+	// Generate `weather advisory`
 	var weatherAdvisory string
 
-	// Check for extreme conditions
+	// Check for extreme conditions (adjusted for Celsius)
 	if strings.Contains(strings.ToLower(origin.Weather.Condition), "storm") ||
 		strings.Contains(strings.ToLower(destination.Weather.Condition), "storm") {
 		weatherAdvisory = "Storm conditions detected. Consider postponing travel or prepare for severe weather."
@@ -411,9 +432,9 @@ func generateTravelAdvice(origin, destination TravelLocationWeather, stops []Tra
 		weatherAdvisory = "Heavy rain expected. Consider adjusting travel plans or prepare for wet conditions."
 	} else if origin.Weather.Precipitation > 30 || destination.Weather.Precipitation > 30 {
 		weatherAdvisory = "Moderate rain possible. Pack appropriate gear but no major weather concerns."
-	} else if maxTemp > 95 {
+	} else if maxTemp > 35 { // > 95°F in Celsius
 		weatherAdvisory = "Extreme heat expected. Stay hydrated and avoid prolonged sun exposure."
-	} else if minTemp < 32 {
+	} else if minTemp < 0 { // < 32°F in Celsius
 		weatherAdvisory = "Freezing temperatures expected. Pack warm clothing and be prepared for potential ice."
 	} else {
 		weatherAdvisory = "Weather conditions look favorable for travel. Enjoy your trip!"

@@ -7,6 +7,9 @@
 
     <link rel="stylesheet" href="/static/css/travel-weather.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
 </head>
 <body>
 <header>
@@ -71,7 +74,24 @@
 
         <button id="check-weather" class="btn primary">Check Weather</button>
     </section>
-
+    <section class="travel-map card hidden" id="map-container">
+        <h2>Travel Route Map</h2>
+        <div id="travel-map"></div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-icon origin-icon"></span>
+                <span class="legend-text">Origin</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon destination-icon"></span>
+                <span class="legend-text">Destination</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon stop-icon"></span>
+                <span class="legend-text">Stops</span>
+            </div>
+        </div>
+    </section>
     <div id="results-container" class="hidden">
         <!-- Weather Results Section -->
         <section class="weather-overview card">
@@ -173,62 +193,12 @@
                 <div id="origin-forecast" class="forecast-panel active">
                     <div class="forecast-days">
                         <!-- Forecast items will be added via JavaScript -->
-                        <div class="forecast-day">
-                            <div class="day-name">Mon</div>
-                            <div class="day-icon"><i class="fas fa-sun"></i></div>
-                            <div class="day-temp">25°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Tue</div>
-                            <div class="day-icon"><i class="fas fa-cloud-sun"></i></div>
-                            <div class="day-temp">24°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Wed</div>
-                            <div class="day-icon"><i class="fas fa-cloud"></i></div>
-                            <div class="day-temp">22°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Thu</div>
-                            <div class="day-icon"><i class="fas fa-cloud-sun-rain"></i></div>
-                            <div class="day-temp">21°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Fri</div>
-                            <div class="day-icon"><i class="fas fa-sun"></i></div>
-                            <div class="day-temp">24°C</div>
-                        </div>
                     </div>
                 </div>
 
                 <div id="destination-forecast" class="forecast-panel">
                     <div class="forecast-days">
                         <!-- Forecast items will be added via JavaScript -->
-                        <div class="forecast-day">
-                            <div class="day-name">Mon</div>
-                            <div class="day-icon"><i class="fas fa-cloud"></i></div>
-                            <div class="day-temp">20°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Tue</div>
-                            <div class="day-icon"><i class="fas fa-cloud-sun"></i></div>
-                            <div class="day-temp">21°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Wed</div>
-                            <div class="day-icon"><i class="fas fa-cloud-rain"></i></div>
-                            <div class="day-temp">18°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Thu</div>
-                            <div class="day-icon"><i class="fas fa-cloud"></i></div>
-                            <div class="day-temp">19°C</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Fri</div>
-                            <div class="day-icon"><i class="fas fa-sun"></i></div>
-                            <div class="day-temp">22°C</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -282,6 +252,6 @@
     <p>&copy; 2025 Weather Tracking App | All rights reserved</p>
 </footer>
 
-<script src="../static/js/travel-weather.js"></script>
+<script src="/static/js/travel-weather.js"></script>
 </body>
 </html>

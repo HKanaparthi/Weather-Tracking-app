@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Map-related variables
+    let map;
+    let routeLayer;
+    let markersLayer;
+
     // Event listener for the include stops checkbox
     const includeStopsCheckbox = document.getElementById('include-stops');
     const stopsContainer = document.getElementById('stops-container');
@@ -132,17 +137,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateWeatherUI(data) {
         // Update origin data
         document.getElementById('origin-name').textContent = data.origin.location;
-        document.getElementById('origin-temp').textContent = `${Math.round(data.origin.weather.temperature)}°F`;
+        document.getElementById('origin-temp').textContent = `${Math.round(data.origin.weather.temperature)}°C`;
         document.getElementById('origin-condition').textContent = data.origin.weather.condition;
-        document.getElementById('origin-wind').textContent = `${data.origin.weather.wind_speed} mph`;
+        document.getElementById('origin-wind').textContent = `${data.origin.weather.wind_speed} m/s`;
         document.getElementById('origin-humidity').textContent = `${data.origin.weather.humidity}%`;
         document.getElementById('origin-precipitation').textContent = `${data.origin.weather.precipitation}%`;
 
         // Update destination data
         document.getElementById('destination-name').textContent = data.destination.location;
-        document.getElementById('destination-temp').textContent = `${Math.round(data.destination.weather.temperature)}°F`;
+        document.getElementById('destination-temp').textContent = `${Math.round(data.destination.weather.temperature)}°C`;
         document.getElementById('destination-condition').textContent = data.destination.weather.condition;
-        document.getElementById('destination-wind').textContent = `${data.destination.weather.wind_speed} mph`;
+        document.getElementById('destination-wind').textContent = `${data.destination.weather.wind_speed} m/s`;
         document.getElementById('destination-humidity').textContent = `${data.destination.weather.humidity}%`;
         document.getElementById('destination-precipitation').textContent = `${data.destination.weather.precipitation}%`;
 
@@ -176,6 +181,16 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('destination-sunrise').textContent = data.destination.timezone.sunrise;
         document.getElementById('destination-sunset').textContent = data.destination.timezone.sunset;
         document.getElementById('time-diff').textContent = data.travel_advice.time_difference;
+
+        // Check if data includes coordinates for mapping
+        if (data.origin.coordinates && data.destination.coordinates) {
+            updateMap(data);
+        } else {
+            // If no coordinates, fetch geocoding data and then update the map
+            fetchGeocodingData(data).then(updatedData => {
+                updateMap(updatedData);
+            });
+        }
     }
 
     // Function to update weather icon based on condition
@@ -238,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dayElement.innerHTML = `
                 <div class="day-name">${day.day}</div>
                 <div class="day-icon"><i class="fas ${iconClass}"></i></div>
-                <div class="day-temp">${Math.round(day.high)}°F</div>
+                <div class="day-temp">${Math.round(day.high)}°C</div>
             `;
             forecastDaysContainer.appendChild(dayElement);
         });
@@ -260,4 +275,190 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(tabId).classList.add('active');
         });
     });
+
+    // MAP FUNCTIONALITY
+
+    // Function to initialize the map
+    function initMap() {
+        if (map) {
+            map.remove();
+        }
+
+        map = L.map('travel-map').setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        routeLayer = L.layerGroup().addTo(map);
+        markersLayer = L.layerGroup().addTo(map);
+    }
+
+    // Function to update the map with route data
+    function updateMap(data) {
+        // Make sure the map container is visible
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer) {
+            mapContainer.classList.remove('hidden');
+        }
+
+        // Initialize map if it doesn't exist
+        if (!map) {
+            initMap();
+        }
+
+        // Clear existing markers and routes
+        routeLayer.clearLayers();
+        markersLayer.clearLayers();
+
+        // Create markers array to store all locations for bounds calculation
+        const markers = [];
+
+        // Add origin marker
+        const originMarker = createMarker(
+            data.origin.location,
+            [data.origin.coordinates.lat, data.origin.coordinates.lon],
+            'blue',
+            data.origin
+        );
+        markers.push(originMarker);
+
+        // Add destination marker
+        const destinationMarker = createMarker(
+            data.destination.location,
+            [data.destination.coordinates.lat, data.destination.coordinates.lon],
+            'green',
+            data.destination
+        );
+        markers.push(destinationMarker);
+
+        // Add stop markers if any
+        const waypoints = [];
+        if (data.stops && data.stops.length > 0) {
+            data.stops.forEach((stop, index) => {
+                const stopMarker = createMarker(
+                    stop.location,
+                    [stop.coordinates.lat, stop.coordinates.lon],
+                    'orange',
+                    stop
+                );
+                markers.push(stopMarker);
+
+                // Add to waypoints for route
+                waypoints.push([stop.coordinates.lat, stop.coordinates.lon]);
+            });
+        }
+
+        // Draw route from origin to destination, through any stops
+        drawRoute([
+            [data.origin.coordinates.lat, data.origin.coordinates.lon],
+            ...waypoints,
+            [data.destination.coordinates.lat, data.destination.coordinates.lon]
+        ]);
+
+        // Set map bounds to fit all markers
+        if (markers.length > 0) {
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds(), { padding: [50, 50] });
+        }
+    }
+
+    // Create a marker with popup showing weather info
+    function createMarker(title, position, color, locationData) {
+        // Define icon colors
+        const colors = {
+            blue: { primary: '#1e88e5', border: '#0d47a1' },
+            green: { primary: '#26a69a', border: '#00695c' },
+            orange: { primary: '#ff9800', border: '#e65100' }
+        };
+
+        // Create custom icon
+        const selectedColor = colors[color] || colors.blue;
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${selectedColor.primary}; border: 2px solid ${selectedColor.border}; width: 16px; height: 16px; border-radius: 50%;"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        // Create marker
+        const marker = L.marker(position, { icon }).addTo(markersLayer);
+
+        // Create popup with weather info
+        const popupContent = `
+            <div class="weather-popup">
+                <strong>${title}</strong>
+                <div class="temp">${Math.round(locationData.weather.temperature)}°C</div>
+                <div class="condition">${locationData.weather.condition}</div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        return marker;
+    }
+
+    // Draw route line between points
+    function drawRoute(points) {
+        if (points.length < 2) return;
+
+        // Create a polyline with the points
+        const polyline = L.polyline(points, {
+            color: '#1e88e5',
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 10',
+            lineJoin: 'round'
+        }).addTo(routeLayer);
+    }
+
+    // Function to fetch geocoding data if needed
+    async function fetchGeocodingData(data) {
+        // Clone the data object
+        const updatedData = JSON.parse(JSON.stringify(data));
+
+        // If origin doesn't have coordinates, fetch them
+        if (!updatedData.origin.coordinates) {
+            updatedData.origin.coordinates = await geocodeLocation(updatedData.origin.location);
+        }
+
+        // If destination doesn't have coordinates, fetch them
+        if (!updatedData.destination.coordinates) {
+            updatedData.destination.coordinates = await geocodeLocation(updatedData.destination.location);
+        }
+
+        // If there are stops, fetch coordinates for each
+        if (updatedData.stops && updatedData.stops.length > 0) {
+            for (let i = 0; i < updatedData.stops.length; i++) {
+                if (!updatedData.stops[i].coordinates) {
+                    updatedData.stops[i].coordinates = await geocodeLocation(updatedData.stops[i].location);
+                }
+            }
+        }
+
+        return updatedData;
+    }
+
+    // Function to geocode a location name to coordinates
+    async function geocodeLocation(locationName) {
+        // Note: In a production app, you'd use a geocoding service like Nominatim or Google Maps
+        // For this demo, we'll use a free Nominatim endpoint
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                return {
+                    lat: parseFloat(data[0].lat),
+                    lon: parseFloat(data[0].lon)
+                };
+            }
+
+            // If geocoding fails, return default coordinates
+            return { lat: 0, lon: 0 };
+        } catch (error) {
+            console.error('Geocoding error:', error);
+            return { lat: 0, lon: 0 };
+        }
+    }
 });
