@@ -1,4 +1,3 @@
-<!--Dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +6,7 @@
     <title>Weather Dashboard - GoWeather Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="static/css/dashboard.css">
 </head>
 <body class="dark-theme">
 <!-- Header -->
@@ -20,20 +19,24 @@
     <div class="header-right">
         <div class="welcome-text">Welcome, <strong id="username">User</strong></div>
         <div class="nav-buttons">
-            <a href="/compare" class="transparent-button">Compare</a>
-            <a href="/historical-comparison" class="transparent-button">Historical</a>
-            <a href="/travel-weather" class="transparent-button">Travel Plan</a>
-            <a href="/activities" class="transparent-button">Activities</a>
-            <a href="/alerts" class="transparent-button premium-feature">Alerts</a>
+            <a href="./compare" class="transparent-button">Compare</a>
+            <a href="./historical-comparison" class="transparent-button">Historical</a>
+            <a href="./travel-weather" class="transparent-button">Travel Plan</a>
+            <a href="./activities" class="transparent-button">Activities</a>
+            <a href="./alerts" class="transparent-button premium-feature">Alerts</a>
+
+            <button id="darkModeToggle" class="transparent-button">
+                <i class="fas fa-moon"></i>
+            </button>
 
             <!-- Profile dropdown -->
             <div class="profile-dropdown">
-                <div class="profile-circle">
+                <div class="profile-circle" id="profileCircle">
                     <span id="profile-initial">U</span>
                 </div>
-                <div class="dropdown-content">
-                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
-                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <div class="dropdown-content" id="dropdownContent">
+                    <a href="./profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="./logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -46,7 +49,7 @@
     <div class="search-container">
         <form id="searchForm" action="#" method="GET">
             <div class="search-box">
-                <input type="text" name="city" id="cityInput" class="search-bar" placeholder="Enter your place" value="">
+                <input type="text" name="city" id="cityInput" class="search-bar" placeholder="Enter your place" value="Charlotte">
                 <button type="button" id="getLocation" class="location-button" title="Use your current location">
                     <i class="fas fa-location-arrow"></i>
                 </button>
@@ -66,19 +69,19 @@
         <span>Getting premium weather data for your location...</span>
     </div>
 
-    <!-- Weather Dashboard -->
+    <!-- Weather Cards Section -->
     <div class="weather-dashboard">
         <!-- Temperature Card -->
         <div class="weather-card temperature-card">
             <div class="card-label">temperature</div>
             <div class="temperature">
-                <span id="currentTemp">--</span>
+                <span id="currentTemp">13</span>
                 <span class="degree">°C</span>
             </div>
-            <div class="weather-desc" id="weatherType">--</div>
+            <div class="weather-desc" id="weatherType">Broken Clouds</div>
             <div class="weather-sublabel">weather</div>
             <div class="feels-like premium-feature">
-                Feels like: <span id="feelsLike">--</span>°C
+                Feels like: <span id="feelsLike">12</span>°C
             </div>
         </div>
 
@@ -86,12 +89,12 @@
         <div class="weather-card location-card">
             <div class="location-info">
                 <i class="fas fa-map-marker-alt"></i>
-                <span id="locationName">Location</span>
+                <span id="locationName">Charlotte</span>
             </div>
             <div class="location-details premium-feature">
-                <div><i class="fas fa-globe"></i> <span id="countryCode">--</span></div>
-                <div><i class="fas fa-map-pin"></i> <span id="coordinates">--.----, --.----</span></div>
-                <div><i class="fas fa-clock"></i> <span id="timezone">UTC+0</span></div>
+                <div><i class="fas fa-globe"></i> <span id="countryCode">US</span></div>
+                <div><i class="fas fa-map-pin"></i> <span id="coordinates">35.2272, -80.8431</span></div>
+                <div><i class="fas fa-clock"></i> <span id="timezone">UTC-4</span></div>
             </div>
         </div>
 
@@ -103,27 +106,27 @@
                     <div class="sun-label">
                         <i class="fas fa-sun"></i> Rise:
                     </div>
-                    <span id="sunriseTime">--:--</span>
+                    <span id="sunriseTime">06:54</span>
                 </div>
                 <div class="sun-row">
                     <div class="sun-label">
                         <i class="fas fa-moon"></i> Set:
                     </div>
-                    <span id="sunsetTime">--:--</span>
+                    <span id="sunsetTime">19:53</span>
                 </div>
             </div>
             <div class="day-length">
-                Day Length: <span id="dayLength">--h --m</span>
+                Day Length: <span id="dayLength">12h 58m</span>
             </div>
             <div class="moon-phase">
-                Moon Phase: <span id="moonPhase">--</span>
+                Moon Phase: <span id="moonPhase">Full Moon</span>
             </div>
         </div>
 
         <!-- UV Index Card -->
         <div class="weather-card uv-card premium-feature">
             <div class="card-label">UV Index</div>
-            <div class="uv-value" id="uvValue">0</div>
+            <div class="uv-value" id="uvValue">0.2</div>
             <div class="uv-status" id="uvStatus" data-status="Low">Low</div>
             <div class="uv-message" id="uvMessage">No protection needed</div>
         </div>
@@ -132,11 +135,11 @@
         <div class="weather-card humidity-card">
             <div class="card-label">Humidity</div>
             <div class="percentage">
-                <span id="humidityValue">--</span>%
+                <span id="humidityValue">54</span>%
             </div>
             <div class="indicator">
                 <div class="indicator-bar">
-                    <div class="indicator-fill" style="width: 50%;"></div>
+                    <div class="indicator-fill" style="width: 54%;"></div>
                 </div>
             </div>
             <div class="indicator-labels">
@@ -144,22 +147,22 @@
                 <span>Comfortable</span>
                 <span>Humid</span>
             </div>
-            <div class="date-info" id="currentDate"></div>
+            <div class="date-info" id="currentDate">12.04.2025</div>
         </div>
 
         <!-- Air Quality Card (Premium Feature) -->
         <div class="weather-card air-quality-card premium-feature">
             <div class="card-label">Air Quality Index</div>
-            <div class="aqi-value" id="aqiValue">--</div>
-            <div class="aqi-status" id="aqiStatus" data-status="Good">Good</div>
+            <div class="aqi-value" id="aqiValue">2</div>
+            <div class="aqi-status" id="aqiStatus" data-status="Fair">Fair</div>
             <div class="aqi-components">
                 <div class="aqi-component">
                     <div class="component-name">PM2.5</div>
-                    <div class="component-value" id="pm25">--</div>
+                    <div class="component-value" id="pm25">2.7</div>
                 </div>
                 <div class="aqi-component">
                     <div class="component-name">PM10</div>
-                    <div class="component-value" id="pm10">--</div>
+                    <div class="component-value" id="pm10">3.2</div>
                 </div>
             </div>
         </div>
@@ -168,14 +171,14 @@
         <div class="weather-card wind-card premium-feature-card">
             <div class="card-label">Wind</div>
             <div class="wind-speed-value">
-                <span id="windSpeed">--</span> km/h
+                <span id="windSpeed">4.6</span> km/h
             </div>
             <div class="wind-direction">
-                <i class="fas fa-location-arrow" id="windDirectionIcon" style="transform: rotate(0deg)"></i>
-                <span id="windDirection">--</span>
+                <i class="fas fa-location-arrow" id="windDirectionIcon" style="transform: rotate(45deg)"></i>
+                <span id="windDirection">NE</span>
             </div>
             <div class="wind-gust premium-feature">
-                Gusts: <span id="windGust">--</span> km/h
+                Gusts: <span id="windGust">8.2</span> km/h
             </div>
         </div>
 
@@ -183,14 +186,54 @@
         <div class="weather-card rain-card premium-feature-card">
             <div class="card-label">Precipitation</div>
             <div class="rain-amount">
-                <span id="precipAmount">--</span> mm
+                <span id="precipAmount">0.0</span> mm
             </div>
             <div class="rain-probability">
-                Probability: <span id="precipProb">--</span>%
+                Probability: <span id="precipProb">0</span>%
             </div>
             <div class="rain-types premium-feature">
-                <div>Rain: <span id="rainAmount">--</span> mm</div>
-                <div>Snow: <span id="snowAmount">--</span> mm</div>
+                <div>Rain: <span id="rainAmount">0.0</span> mm</div>
+                <div>Snow: <span id="snowAmount">0.0</span> mm</div>
+            </div>
+        </div>
+
+        <!-- Weather Info Cards (New) -->
+        <div class="weather-card info-card-large premium-feature">
+            <div class="weather-info-title">Tomorrow's Weather</div>
+            <div class="weather-info-content">
+                <div class="info-day-label">Sunny Day Ahead</div>
+                <div class="info-day-desc">Expect tomorrow to be next sunny day</div>
+                <div class="info-indicators">
+                    <span class="info-indicator active"></span>
+                    <span class="info-indicator"></span>
+                    <span class="info-indicator"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="weather-card info-card premium-feature">
+            <div class="weather-info-title">Pollen Outlook</div>
+            <div class="weather-info-content">
+                <div class="info-day-desc">Tree, grass pollen increasing tomorrow</div>
+                <div class="info-indicators">
+                    <span class="info-indicator"></span>
+                    <span class="info-indicator active"></span>
+                    <span class="info-indicator"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="weather-card info-card premium-feature">
+            <div class="weather-info-title">Air Pressure</div>
+            <div class="weather-info-content">
+                <div class="info-day-value">1015 <span class="info-value-unit">hPa</span></div>
+            </div>
+        </div>
+
+        <div class="weather-card info-card premium-feature">
+            <div class="weather-info-title">Visibility</div>
+            <div class="weather-info-content">
+                <div class="info-day-value">10 <span class="info-value-unit">mi</span></div>
             </div>
         </div>
 
@@ -235,7 +278,37 @@
         </div>
     </div>
 
-    <!-- Weather Map Section (NEW) -->
+    <!-- Sun and Moon Info Section (New) -->
+    <div class="sun-moon-section premium-feature-section">
+        <div class="sun-moon-card">
+            <div class="sun-moon-header">
+                <h3>Sunrise & Sunset</h3>
+            </div>
+            <div class="sun-moon-content">
+                <div class="sun-side">
+                    <div class="sun-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="sun-label">Sunrise</div>
+                    <div class="sun-time" id="sunriseLargeTime">6:53 AM</div>
+                </div>
+                <div class="progress-container">
+                    <div class="day-progress">
+                        <div class="day-progress-indicator"></div>
+                    </div>
+                </div>
+                <div class="sun-side">
+                    <div class="sun-icon">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="sun-label">Sunset</div>
+                    <div class="sun-time" id="sunsetLargeTime">7:53 PM</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Map Section -->
     <div class="weather-map-container premium-feature-section">
         <div class="map-header">
             <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
@@ -276,23 +349,74 @@
             </div>
         </div>
     </div>
+
+    <!-- 24-Hour Temperature Chart -->
+    <div class="temperature-chart-container">
+        <div class="chart-header">
+            <h3>24-Hour Temperature</h3>
+        </div>
+        <div class="temperature-chart" id="temperatureChart">
+            <!-- Hourly temperature chart will be populated by JS -->
+        </div>
+        <div class="daily-forecast-icons" id="dailyIcons">
+            <!-- Daily forecast with icons will be populated by JS -->
+        </div>
+    </div>
+
+    <!-- Weather Metrics Grid (New) -->
+    <div class="weather-metrics-grid premium-feature-section">
+        <div class="metrics-header">
+            <h3>Weather Details</h3>
+        </div>
+        <div class="metrics-container">
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-sun"></i></div>
+                <div class="metric-name">UV</div>
+                <div class="metric-value" id="metricUv">1</div>
+                <div class="metric-description">Very weak</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-temperature-low"></i></div>
+                <div class="metric-name">Feels like</div>
+                <div class="metric-value" id="metricFeelsLike">12°</div>
+                <div class="metric-description">Similar to actual</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-tint"></i></div>
+                <div class="metric-name">Humidity</div>
+                <div class="metric-value" id="metricHumidity">46%</div>
+                <div class="metric-description">Comfortable</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-wind"></i></div>
+                <div class="metric-name">Wind</div>
+                <div class="metric-value" id="metricWind">9 mph</div>
+                <div class="metric-description">N direction</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                <div class="metric-name">Pressure</div>
+                <div class="metric-value" id="metricPressure">1015</div>
+                <div class="metric-description">hPa</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon"><i class="fas fa-eye"></i></div>
+                <div class="metric-name">Visibility</div>
+                <div class="metric-value" id="metricVisibility">10</div>
+                <div class="metric-description">miles</div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- 24-Hour Temperature Chart -->
-<div class="temperature-chart-container">
-    <div class="chart-header">
-        <h3>24-Hour Temperature</h3>
-    </div>
-    <div class="temperature-chart" id="temperatureChart">
-        <!-- Hourly temperature chart will be populated by JS -->
-    </div>
-    <div class="daily-forecast-icons" id="dailyIcons">
-        <!-- Daily forecast with icons will be populated by JS -->
-    </div>
-</div>
-
+<script>
+    // Set default username if not already set
+    if (!localStorage.getItem('username')) {
+        localStorage.setItem('username', 'User');
+    }
+</script>
 <!-- Load Leaflet JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="/static/js/dashboard.js"></script>
+<script src="static/js/dashboard.js"></script>
 </body>
 </html>
