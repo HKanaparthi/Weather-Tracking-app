@@ -74,18 +74,18 @@
                 <button class="remove-city" data-city="{{ .Name }}">×</button>
             </div>
             <div class="city-content">
-                <div class="temperature">{{ .Current.Temperature }}°C</div>
+                <div class="temperature">{{ .Current.Temperature }}</div>
                 <div class="condition">{{ .Current.Condition }}</div>
 
                 <div class="weather-details">
                     <div class="detail-item">
                         <span class="detail-label">Humidity</span>
-                        <span class="detail-value">{{ .Current.Humidity }}%</span>
+                        <span class="detail-value">{{ .Current.Humidity }}</span>
                     </div>
 
                     <div class="detail-item">
                         <span class="detail-label">Pressure</span>
-                        <span class="detail-value">{{ .Current.Pressure }} hPa</span>
+                        <span class="detail-value">{{ .Current.Pressure }} </span>
                     </div>
 
                     <div class="detail-item">
@@ -125,7 +125,7 @@
                 <tr>
                     <td>Temperature</td>
                     {{ range .Cities }}
-                    <td>{{ .Current.Temperature }}°C</td>
+                    <td>{{ .Current.Temperature }}</td>
                     {{ end }}
                 </tr>
                 <tr>
@@ -137,13 +137,13 @@
                 <tr>
                     <td>Humidity</td>
                     {{ range .Cities }}
-                    <td>{{ .Current.Humidity }}%</td>
+                    <td>{{ .Current.Humidity }}</td>
                     {{ end }}
                 </tr>
                 <tr>
                     <td>Pressure</td>
                     {{ range .Cities }}
-                    <td>{{ .Current.Pressure }} hPa</td>
+                    <td>{{ .Current.Pressure }} </td>
                     {{ end }}
                 </tr>
                 <tr>

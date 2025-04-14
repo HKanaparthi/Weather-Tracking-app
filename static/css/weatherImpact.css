@@ -535,12 +535,12 @@ header p {
     position: relative;
 }
 
-.weather-temp::after {
-    content: '°C';
-    font-size: 0.5em;
-    position: absolute;
-    top: 8px;
-}
+/*.weather-temp::after {*/
+/*    content: '°C';*/
+/*    font-size: 0.5em;*/
+/*    position: absolute;*/
+/*    top: 8px;*/
+/*}*/
 
 .weather-metrics {
     display: grid;
