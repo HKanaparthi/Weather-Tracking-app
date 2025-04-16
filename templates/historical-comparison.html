@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historical Weather Comparison - GoWeather Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/comparisionHistorical.css">
+    <link rel="stylesheet" href="../static/css/comparisionHistorical.css">
 </head>
-<body class="dark-theme">   
+<body class="dark-theme">
 <!-- Header -->
 <div class="header">
     <div class="header-logo">
@@ -21,6 +21,7 @@
         <div class="nav-buttons">
             <a href="/dashboard" class="transparent-button">Home</a>
             <a href="/compare" class="transparent-button">Compare</a>
+            <a href="./travel-weather" class="transparent-button">Travel Plan</a>
             <a href="/activities" class="transparent-button">Activities</a>
             <a href="/alerts" class="transparent-button premium-feature">Alerts</a>
 
@@ -50,6 +51,9 @@
         <span>Getting historical weather data...</span>
     </div>
 
+    <!-- Error message container -->
+    <div id="error-message" class="error hidden"></div>
+
     <!-- Location selector -->
     <div id="location-selector" class="weather-card">
         <h2>Select a Location</h2>
@@ -64,11 +68,19 @@
                 <button type="submit" id="location-search-btn" class="search-button">Search</button>
             </form>
         </div>
+        <button type="button" id="current-location-btn" class="transparent-button">
+            <i class="fas fa-map-marker-alt"></i> Use Current Location
+        </button>
     </div>
 
     <!-- Comparison section -->
     <div id="comparison-section" class="comparison-section hidden">
         <h2 id="location-title" class="location-title">Weather Comparison</h2>
+
+        <!-- Weather data visualization -->
+        <div id="weather-graph" class="weather-card graph-container">
+            <!-- Graph will be generated here -->
+        </div>
 
         <div class="weather-cards-container">
             <div id="current-weather" class="weather-card weather-card-container">
@@ -93,9 +105,17 @@
             <button id="change-location-btn" class="transparent-button">Change Location</button>
         </div>
     </div>
+
+    <!-- Loading container -->
+    <div id="loading" class="loading-container hidden">
+        <div class="spinner"></div>
+        <span id="loading-message">Loading...</span>
+    </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
 <script src="/static/js/historical-comparison.js"></script>
+<script src="/static/js/weather-graph.js"></script>
 <script>
     // Add event listener for change location button
     document.getElementById('change-location-btn').addEventListener('click', function() {

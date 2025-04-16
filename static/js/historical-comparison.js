@@ -50,6 +50,15 @@ function setupEventListeners() {
         searchBtn.addEventListener('click', handleLocationSearch);
     }
 
+    // Search form submission
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLocationSearch();
+        });
+    }
+
     // Current location button
     const currentLocBtn = document.getElementById('current-location-btn');
     if (currentLocBtn) {
@@ -244,6 +253,9 @@ function loadHistoricalComparison(lat, lon) {
             }
 
             displayComparisonData();
+
+            // Create graph visualization
+            createWeatherGraph(comparisonData);
         })
         .catch(error => {
             console.error("API request error:", error);
@@ -252,6 +264,9 @@ function loadHistoricalComparison(lat, lon) {
             // Create test data to show UI even if API fails
             createTestData();
             displayComparisonData();
+
+            // Create graph with test data
+            createWeatherGraph(comparisonData);
         })
         .finally(() => {
             hideLoading();
@@ -569,5 +584,4 @@ function hideLocationSelector() {
 // Always return true for login check during testing
 function isLoggedIn() {
     return true;
-
 }

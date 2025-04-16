@@ -69,6 +69,48 @@
         <span>Getting premium weather data for your location...</span>
     </div>
 
+    <!-- MOVED: Weather Map Section to the top -->
+    <div class="weather-map-container premium-feature-section">
+        <div class="map-header">
+            <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
+            <div class="map-controls">
+                <div class="map-layer-select">
+                    <label for="mapLayer">Layer:</label>
+                    <select id="mapLayer" class="map-layer-dropdown">
+                        <option value="temp_new">Temperature</option>
+                        <option value="clouds_new">Clouds</option>
+                        <option value="precipitation_new">Precipitation</option>
+                        <option value="pressure_new">Pressure</option>
+                        <option value="wind_new">Wind</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="weatherMap" class="weather-map"></div>
+        <div class="map-legend">
+            <div class="legend-item temp-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #352A97, #0262E7, #0594F2, #17D1F0, #91F2EF, #FDFEBD, #FFDE56, #FF8B30, #F44C28, #A3180C);"></span>
+                <span class="legend-label">-40°C to 40°C</span>
+            </div>
+            <div class="legend-item clouds-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(150,150,150,0.6), rgba(100,100,100,0.8));"></span>
+                <span class="legend-label">0% to 100%</span>
+            </div>
+            <div class="legend-item precip-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, rgba(160,236,255,0.4), rgba(59,161,255,0.7), rgba(2,4,217,0.9));"></span>
+                <span class="legend-label">0mm to 10mm</span>
+            </div>
+            <div class="legend-item pressure-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #8186FF, #8BC3FE, #C6F68D, #FED976, #FA8B6D, #BF3838);"></span>
+                <span class="legend-label">950hPa to 1050hPa</span>
+            </div>
+            <div class="legend-item wind-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #3288bd, #66c2a5, #abdda4, #e6f598, #fee08b, #fdae61, #f46d43, #d53e4f);"></span>
+                <span class="legend-label">0m/s to 30m/s</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Weather Cards Section -->
     <div class="weather-dashboard">
         <!-- Temperature Card -->
@@ -304,48 +346,6 @@
                     <div class="sun-label">Sunset</div>
                     <div class="sun-time" id="sunsetLargeTime">7:53 PM</div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Weather Map Section -->
-    <div class="weather-map-container premium-feature-section">
-        <div class="map-header">
-            <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
-            <div class="map-controls">
-                <div class="map-layer-select">
-                    <label for="mapLayer">Layer:</label>
-                    <select id="mapLayer" class="map-layer-dropdown">
-                        <option value="temp_new">Temperature</option>
-                        <option value="clouds_new">Clouds</option>
-                        <option value="precipitation_new">Precipitation</option>
-                        <option value="pressure_new">Pressure</option>
-                        <option value="wind_new">Wind</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div id="weatherMap" class="weather-map"></div>
-        <div class="map-legend">
-            <div class="legend-item temp-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #352A97, #0262E7, #0594F2, #17D1F0, #91F2EF, #FDFEBD, #FFDE56, #FF8B30, #F44C28, #A3180C);"></span>
-                <span class="legend-label">-40°C to 40°C</span>
-            </div>
-            <div class="legend-item clouds-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(150,150,150,0.6), rgba(100,100,100,0.8));"></span>
-                <span class="legend-label">0% to 100%</span>
-            </div>
-            <div class="legend-item precip-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, rgba(160,236,255,0.4), rgba(59,161,255,0.7), rgba(2,4,217,0.9));"></span>
-                <span class="legend-label">0mm to 10mm</span>
-            </div>
-            <div class="legend-item pressure-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #8186FF, #8BC3FE, #C6F68D, #FED976, #FA8B6D, #BF3838);"></span>
-                <span class="legend-label">950hPa to 1050hPa</span>
-            </div>
-            <div class="legend-item wind-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #3288bd, #66c2a5, #abdda4, #e6f598, #fee08b, #fdae61, #f46d43, #d53e4f);"></span>
-                <span class="legend-label">0m/s to 30m/s</span>
             </div>
         </div>
     </div>
