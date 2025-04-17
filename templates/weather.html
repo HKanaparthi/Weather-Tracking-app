@@ -443,6 +443,17 @@
       font-weight: 600;
     }
 
+    /* Status Message */
+    .status-message {
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin: 15px auto;
+      text-align: center;
+      max-width: 80%;
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
       .search-form {
@@ -566,8 +577,6 @@
         {{else}}
         --
         {{end}}
-
-
         <span class="celsius">°C</span>
       </div>
       <div class="weather-condition">
@@ -734,11 +743,20 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Debug logging
-    console.log('Weather page loaded for city: {{.City}}');
+    console.log('Weather page loaded');
 
     // Get location button
     const locationButton = document.getElementById('getLocation');
     const loadingIndicator = document.getElementById('loadingIndicator');
+
+    // Get any stored coordinates from previous geolocation
+    const storedLat = sessionStorage.getItem('weatherLat');
+    const storedLon = sessionStorage.getItem('weatherLon');
+    const storedCity = sessionStorage.getItem('weatherCity');
+
+    if (storedLat && storedLon && storedCity) {
+      console.log(`Found stored location: ${storedCity} (${storedLat}, ${storedLon})`);
+    }
 
     if (locationButton) {
       locationButton.addEventListener('click', function() {
@@ -748,13 +766,70 @@
         }
 
         if (navigator.geolocation) {
+          console.log('Getting user location...');
           navigator.geolocation.getCurrentPosition(
                   // Success callback
                   function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
+
                     console.log('Got coordinates:', latitude, longitude);
-                    window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
+
+                    // Create a visual status message
+                    if (loadingIndicator) {
+                      loadingIndicator.style.display = 'none';
+                    }
+
+                    const container = document.querySelector('.container');
+                    const statusMsg = document.createElement('div');
+                    statusMsg.className = 'status-message';
+                    statusMsg.textContent = `Location found: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+                    container.insertBefore(statusMsg, container.firstChild);
+
+                    // Use an XHR request to get the city name
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `/api/reverse-geocode?lat=${latitude}&lon=${longitude}`, true);
+                    xhr.onload = function() {
+                      if (xhr.status === 200) {
+                        try {
+                          const data = JSON.parse(xhr.responseText);
+                          const cityName = data.name || "Unknown Location";
+
+                          // Store in sessionStorage
+                          sessionStorage.setItem('weatherLat', latitude);
+                          sessionStorage.setItem('weatherLon', longitude);
+                          sessionStorage.setItem('weatherCity', cityName);
+
+                          // Update status
+                          statusMsg.textContent = `Found location: ${cityName}. Redirecting...`;
+
+                          // Redirect with direct city name
+                          setTimeout(function() {
+                            window.location.href = `/weather?city=${encodeURIComponent(cityName)}`;
+                          }, 1000);
+                        } catch (e) {
+                          console.error("Error parsing location data:", e);
+                          // Direct fallback to weather with coordinates if reverse geocoding fails
+                          statusMsg.textContent = 'Using direct coordinates for weather...';
+                          setTimeout(function() {
+                            window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
+                          }, 1000);
+                        }
+                      } else {
+                        console.error("Error getting location name:", xhr.status);
+                        // Direct fallback to weather with coordinates if reverse geocoding fails
+                        statusMsg.textContent = 'Using direct coordinates for weather...';
+                        setTimeout(function() {
+                          window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
+                        }, 1000);
+                      }
+                    };
+                    xhr.onerror = function() {
+                      console.error("Network error getting location name");
+                      handleGeolocationError(statusMsg);
+                    };
+                    xhr.send();
                   },
                   // Error callback
                   function(error) {
@@ -766,9 +841,9 @@
                   },
                   // Options
                   {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    enableHighAccuracy: false,
+                    timeout: 7000,
+                    maximumAge: 60000
                   }
           );
         } else {
@@ -778,6 +853,10 @@
           alert('Geolocation is not supported by your browser.');
         }
       });
+    }
+
+    function handleGeolocationError(statusMsg) {
+      statusMsg.textContent = 'Could not determine your exact location. Please enter a city name manually.';
     }
 
     // Set current date
