@@ -3,6 +3,19 @@
  * Handles dynamic weather data loading and UI updates with enhanced functionality
  */
 
+// Capture server-provided username before anything else
+(function() {
+    // Check if the page is using server-side rendered username
+    const usernameElement = document.getElementById('username');
+    const serverProvidedUsername = usernameElement ? usernameElement.textContent.trim() : null;
+
+    // If server provided a non-default username, use it as the source of truth
+    if (serverProvidedUsername && serverProvidedUsername !== 'User') {
+        console.log('Using server-provided username:', serverProvidedUsername);
+        localStorage.setItem('username', serverProvidedUsername);
+    }
+})();
+
 // API Key - for OpenWeatherMap API
 const API_KEY = "0c2e2084bdd01a671b1b450215191f89";
 
@@ -214,6 +227,82 @@ function updateWeatherMetrics() {
     if (metricVisibility) {
         const visibilityMiles = (currentWeatherData.current.visibility / 1609).toFixed(1);
         metricVisibility.textContent = visibilityMiles;
+    }
+}
+
+// Updated initializeUsername function that respects server-provided username
+function initializeUsername() {
+    console.log('initializeUsername called');
+    const usernameElement = document.getElementById('username');
+    const profileInitialElement = document.getElementById('profile-initial');
+
+    if (!usernameElement) return;
+
+    // Check if there's a server-provided username that's not the default
+    const serverUsername = usernameElement.textContent.trim();
+    const isServerCustomUsername = serverUsername !== 'User';
+
+    // Get username from localStorage as backup
+    let savedUsername = localStorage.getItem('username');
+
+    // Determine the username to display
+    let displayUsername;
+
+    if (isServerCustomUsername) {
+        // If server provided a custom username, use it and update localStorage
+        displayUsername = serverUsername;
+        localStorage.setItem('username', displayUsername);
+    } else if (savedUsername && savedUsername !== 'User' && savedUsername !== 'GoWeather User') {
+        // Otherwise use localStorage if it has a custom value
+        displayUsername = savedUsername;
+    } else {
+        // Default fallback
+        displayUsername = 'User';
+        localStorage.setItem('username', displayUsername);
+    }
+
+    // Set the username in the UI
+    usernameElement.textContent = displayUsername;
+
+    // Update profile initial
+    if (profileInitialElement) {
+        profileInitialElement.textContent = displayUsername.charAt(0).toUpperCase();
+    }
+
+    console.log('Username initialized to:', displayUsername);
+}
+
+function updateUsername(newUsername) {
+    if (!newUsername || newUsername.trim() === '') return;
+
+    newUsername = newUsername.trim();
+
+    // Update in localStorage
+    localStorage.setItem('username', newUsername);
+
+    // Update UI elements
+    const usernameElement = document.getElementById('username');
+    const profileInitialElement = document.getElementById('profile-initial');
+
+    if (usernameElement) {
+        usernameElement.textContent = newUsername;
+    }
+
+    if (profileInitialElement) {
+        profileInitialElement.textContent = newUsername.charAt(0).toUpperCase();
+    }
+}
+
+function setupUsernameChange() {
+    const changeUsernameButton = document.getElementById('changeUsernameBtn');
+
+    if (changeUsernameButton) {
+        changeUsernameButton.addEventListener('click', function() {
+            const newUsername = prompt('Enter your username:', localStorage.getItem('username') || '');
+            if (newUsername) {
+                updateUsername(newUsername);
+            }
+        });
     }
 }
 
@@ -637,7 +726,6 @@ function processWeatherData(currentWeather, oneCallData, airQualityData, cityNam
         lat: currentWeather.coord?.lat || 0,
         lon: currentWeather.coord?.lon || 0
     };
-
     // Calculate day length
     if (currentWeather.sys?.sunrise && currentWeather.sys?.sunset) {
         const sunriseTime = currentWeather.sys.sunrise * 1000;
@@ -840,7 +928,6 @@ function processWeatherData(currentWeather, oneCallData, airQualityData, cityNam
             };
         });
     }
-
     // Return complete weather data
     return {
         city: cityName,
@@ -1127,7 +1214,6 @@ function updateHourlyForecast(hourlyData) {
     currentHourlyPage = 0;
     updateHourlyNavigationStatus();
 }
-
 // Function to update daily forecast
 function updateDailyForecast(forecastData) {
     const dailyForecastContainer = document.getElementById('dailyForecast');
@@ -1313,7 +1399,6 @@ function updateWeatherAlerts(alerts) {
         alertsContainer.innerHTML += alertHTML;
     });
 }
-
 // Function to update hourly navigation status
 function updateHourlyNavigationStatus() {
     const prevHoursBtn = document.getElementById('prevHours');
@@ -1514,7 +1599,6 @@ function generateExtendedHourlyData(hourlyData) {
 
     return result;
 }
-
 // Initialize the weather map
 function initializeWeatherMap() {
     // Check if map container exists
@@ -1741,27 +1825,6 @@ async function fetchCitySuggestions(query) {
     }
 }
 
-function initializeUsername() {
-    const usernameElement = document.getElementById('username');
-    const profileInitialElement = document.getElementById('profile-initial');
-
-    if (usernameElement) {
-        // Get a proper username from localStorage - if not set, use "User" as default
-        const savedUsername = localStorage.getItem('username') || "User";
-
-        // Set the username
-        usernameElement.textContent = savedUsername;
-
-        // Store the username in localStorage for persistence
-        localStorage.setItem('username', savedUsername);
-
-        if (profileInitialElement) {
-            // Set the first letter of the username as the profile initial
-            profileInitialElement.textContent = savedUsername.charAt(0).toUpperCase();
-        }
-    }
-}
-
 function setupProfileDropdown() {
     const profileCircle = document.getElementById('profileCircle');
     const dropdownContent = document.getElementById('dropdownContent');
@@ -1807,6 +1870,7 @@ function handleDeviceSpecificBehavior() {
         });
     }
 }
+
 // Add dark mode toggle functionality
 function setupDarkModeToggle() {
     // Check if dark mode is already enabled in localStorage

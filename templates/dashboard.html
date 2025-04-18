@@ -17,7 +17,7 @@
         </a>
     </div>
     <div class="header-right">
-        <div class="welcome-text">Welcome, <strong id="username">User</strong></div>
+        <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
         <div class="nav-buttons">
             <a href="./compare" class="transparent-button">Compare</a>
             <a href="./historical-comparison" class="transparent-button">Historical</a>
@@ -69,7 +69,7 @@
         <span>Getting premium weather data for your location...</span>
     </div>
 
-    <!-- MOVED: Weather Map Section to the top -->
+    <!-- Weather Map Section -->
     <div class="weather-map-container premium-feature-section">
         <div class="map-header">
             <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
@@ -409,14 +409,11 @@
     </div>
 </div>
 
-<script>
-    // Set default username if not already set
-    if (!localStorage.getItem('username')) {
-        localStorage.setItem('username', 'User');
-    }
-</script>
 <!-- Load Leaflet JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Load main dashboard JS with the fix -->
 <script src="static/js/dashboard.js"></script>
+
 </body>
 </html>
