@@ -30,9 +30,10 @@
             </button>
 
             <!-- Profile dropdown -->
+            <!-- Profile dropdown -->
             <div class="profile-dropdown">
                 <div class="profile-circle" id="profileCircle">
-                    <span id="profile-initial">U</span>
+                    <img id="profile-photo" src="{{ if .User.ProfilePhoto }}/static/profile_photos/{{ .User.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo" height="40px">
                 </div>
                 <div class="dropdown-content" id="dropdownContent">
                     <a href="./profile"><i class="fas fa-user"></i> Profile</a>

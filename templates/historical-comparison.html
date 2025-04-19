@@ -1,4 +1,3 @@
-<!--Historical-comparison.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +16,7 @@
         </a>
     </div>
     <div class="header-right">
-        <div class="welcome-text">Welcome, <strong id="username">User</strong></div>
+        <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
         <div class="nav-buttons">
             <a href="/dashboard" class="transparent-button">Home</a>
             <a href="/compare" class="transparent-button">Compare</a>
@@ -27,10 +26,10 @@
 
             <!-- Profile dropdown -->
             <div class="profile-dropdown">
-                <div class="profile-circle">
+                <div class="profile-circle" id="profileCircle">
                     <span id="profile-initial">U</span>
                 </div>
-                <div class="dropdown-content">
+                <div class="dropdown-content" id="dropdownContent">
                     <a href="/profile"><i class="fas fa-user"></i> Profile</a>
                     <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
@@ -39,6 +38,21 @@
     </div>
 </div>
 
+<!-- Username synchronization script to be placed right after the header -->
+<script>
+    // Set profile initial based on username
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = document.getElementById('username').textContent.trim();
+        if (username && username !== 'User') {
+            const profileInitial = document.getElementById('profile-initial');
+            if (profileInitial) {
+                profileInitial.textContent = username.charAt(0).toUpperCase();
+            }
+        }
+    });
+</script>
+
+<!-- Rest of the content remains the same -->
 <div class="dashboard-container">
     <h1>Historical Weather Comparison</h1>
     <p class="section-description">

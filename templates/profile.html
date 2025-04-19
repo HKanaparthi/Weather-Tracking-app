@@ -7,7 +7,7 @@
   <style>
     /* Base styles */
     body {
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background: #000000; /* Black background */
       color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
@@ -29,7 +29,7 @@
     }
 
     .profile-box {
-      background-color: rgba(30, 30, 30, 0.7);
+      background-color: rgba(30, 30, 30, 0.8);
       border-radius: 15px;
       padding: 2rem;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -43,58 +43,69 @@
       color: #ffffff;
     }
 
-    /* Avatar styles */
-    .avatar-selection {
+    /* Profile Photo styles */
+    .profile-photo-section {
       display: flex;
       flex-direction: column;
       align-items: center;
       margin-bottom: 2rem;
     }
 
-    .current-avatar {
-      width: 120px;
-      height: 120px;
+    .current-photo-container {
+      width: 150px;
+      height: 150px;
       border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 3rem;
-      font-weight: bold;
-      background: linear-gradient(135deg, #4e54c8, #8a84fa);
-      color: white;
-      margin-bottom: 1.5rem;
-      cursor: pointer;
-      position: relative;
       overflow: hidden;
+      margin-bottom: 1.5rem;
+      border: 3px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
 
-    .avatar-upload {
-      display: none;
+    #current-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
-    .avatar-options {
-      display: flex;
-      flex-wrap: wrap;
+    .photo-option-title {
+      color: #ffffff;
+      margin-bottom: 1rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 0 auto;
+      max-width: 100%;
       justify-content: center;
-      gap: 10px;
-      margin-top: 1rem;
     }
 
-    .avatar-option {
-      width: 50px;
-      height: 50px;
+    .photo-option {
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      overflow: hidden;
       cursor: pointer;
       border: 2px solid transparent;
+      transition: all 0.3s ease;
     }
 
-    .avatar-option.selected {
-      border-color: white;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    .photo-option:hover {
+      transform: scale(1.05);
+    }
+
+    .photo-option.selected {
+      border-color: #4e54c8;
+      box-shadow: 0 0 10px rgba(78, 84, 200, 0.5);
+    }
+
+    .photo-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     /* Form styles */
@@ -208,14 +219,6 @@
       background-color: rgba(255, 82, 82, 0.3);
     }
 
-    /* Color options for avatar */
-    .avatar-red { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-    .avatar-blue { background: linear-gradient(135deg, #4e54c8, #8f94fb); }
-    .avatar-green { background: linear-gradient(135deg, #11998e, #38ef7d); }
-    .avatar-purple { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
-    .avatar-orange { background: linear-gradient(135deg, #f12711, #f5af19); }
-    .avatar-pink { background: linear-gradient(135deg, #fc00ff, #00dbde); }
-
     /* Notification styles */
     .notification {
       position: fixed;
@@ -293,6 +296,17 @@
       border-left: 3px solid #FF5252;
     }
 
+    /* Animation for profile photo change */
+    @keyframes photoChanged {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .photo-changed {
+      animation: photoChanged 0.7s ease;
+    }
+
     /* Responsive styles */
     @media (max-width: 768px) {
       .container {
@@ -319,6 +333,22 @@
         text-align: center;
         justify-content: center;
       }
+
+      .photo-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .photo-option {
+        width: 70px;
+        height: 70px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .photo-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
 </head>
@@ -338,119 +368,129 @@
     <div class="success-message">{{ .success }}</div>
     {{ end }}
 
-    <!-- Avatar selection section -->
-    <div class="avatar-selection">
-      <div class="current-avatar avatar-blue" id="current-avatar">
-        {{ if .user.Username }}
-        {{ slice .user.Username 0 1 | toUpper }}
-        {{ else }}
-        U
-        {{ end }}
+    <!-- Profile Photo selection section -->
+    <div class="profile-photo-section">
+      <h3 class="section-title">Profile Photo</h3>
+
+      <div class="current-photo-container">
+        <img id="current-photo" src="{{ if .user.ProfilePhoto }}/static/profile_photos/{{ .user.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo">
       </div>
 
-      <div class="avatar-options">
-        <div class="avatar-option avatar-blue selected" data-color="blue"></div>
-        <div class="avatar-option avatar-red" data-color="red"></div>
-        <div class="avatar-option avatar-green" data-color="green"></div>
-        <div class="avatar-option avatar-purple" data-color="purple"></div>
-        <div class="avatar-option avatar-orange" data-color="orange"></div>
-        <div class="avatar-option avatar-pink" data-color="pink"></div>
+      <div class="photo-options">
+        <div class="photo-option-title">Choose a profile photo:</div>
+        <div class="photo-grid">
+          <div class="photo-option {{ if eq .user.ProfilePhoto "photo1.jpg" }}selected{{ end }}" data-photo="photo1.jpg">
+          <img src="/static/profile_photos/photo1.jpg" alt="Photo Option 1">
+        </div>
+        <div class="photo-option {{ if eq .user.ProfilePhoto "photo2.jpg" }}selected{{ end }}" data-photo="photo2.jpg">
+        <img src="/static/profile_photos/photo2.jpg" alt="Photo Option 2">
       </div>
+      <div class="photo-option {{ if eq .user.ProfilePhoto "photo3.jpg" }}selected{{ end }}" data-photo="photo3.jpg">
+      <img src="/static/profile_photos/photo3.jpg" alt="Photo Option 3">
     </div>
-
-    <form id="profile-form" action="/profile" method="post">
-      <!-- Hidden field for avatar color -->
-      <input type="hidden" id="avatar_color" name="avatar_color" value="blue">
-
-      <div class="form-group">
-        <label for="username" class="form-label">Username</label>
-        <input
-                type="text"
-                id="username"
-                value="{{ .user.Username }}"
-                class="form-input"
-                readonly
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="email" class="form-label">Email</label>
-        <input
-                type="email"
-                id="email"
-                name="email"
-                value="{{ .user.Email }}"
-                class="form-input"
-                required
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="home_city" class="form-label">Home City</label>
-        <input
-                type="text"
-                id="home_city"
-                name="home_city"
-                value="{{ .user.HomeCity }}"
-                placeholder="e.g. London, New York, Tokyo"
-                class="form-input"
-        >
-        <div class="help-text">This will be used to show weather on login</div>
-      </div>
-
-      <!-- Weather Notifications -->
-      <h3 class="section-title">Weather Notifications</h3>
-      <div class="checkbox-wrapper">
-        <input
-                type="checkbox"
-                id="notifications_enabled"
-                name="notifications_enabled"
-                class="form-checkbox"
-                {{ if .user.NotificationsEnabled }}checked{{ end }}
-        >
-        <label for="notifications_enabled">Enable weather alerts via email</label>
-      </div>
-
-      <h3 class="section-title">Alert Threshold</h3>
-      <div class="form-group">
-        <select id="alert_threshold" name="alert_threshold" class="form-select">
-          <option value="severe" {{ if eq .user.AlertThreshold "severe" }}selected{{ end }}>Severe conditions only</option>
-          <option value="moderate" {{ if eq .user.AlertThreshold "moderate" }}selected{{ end }}>Moderate and severe conditions</option>
-          <option value="all" {{ if eq .user.AlertThreshold "all" }}selected{{ end }}>All weather updates</option>
-        </select>
-        <div class="help-text">We'll send alerts to {{ .user.Email }} based on this preference</div>
-      </div>
-
-      <h3 class="section-title">Change Password</h3>
-
-      <div class="form-group">
-        <label for="current_password" class="form-label">Current Password</label>
-        <input
-                type="password"
-                id="current_password"
-                name="current_password"
-                class="form-input"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="new_password" class="form-label">New Password</label>
-        <input
-                type="password"
-                id="new_password"
-                name="new_password"
-                class="form-input"
-        >
-      </div>
-
-      <button type="submit" class="update-btn">Update Profile</button>
-    </form>
-
-    <div class="navigation-links">
-      <a href="/" class="navigation-link">← Back to home page</a>
-      <a href="/logout" class="navigation-link logout-link">Logout</a>
-    </div>
+    <div class="photo-option {{ if eq .user.ProfilePhoto "photo4.jpg" }}selected{{ end }}" data-photo="photo4.jpg">
+    <img src="/static/profile_photos/photo4.jpg" alt="Photo Option 4">
   </div>
+  <div class="photo-option {{ if eq .user.ProfilePhoto "photo5.jpg" }}selected{{ end }}" data-photo="photo5.jpg">
+  <img src="/static/profile_photos/photo5.jpg" alt="Photo Option 5">
+</div>
+</div>
+</div>
+</div>
+
+<form id="profile-form" action="/profile" method="post">
+  <!-- Hidden fields -->
+  <input type="hidden" id="profile_photo" name="profile_photo" value="{{ if .user.ProfilePhoto }}{{ .user.ProfilePhoto }}{{ else }}default.jpg{{ end }}">
+
+  <div class="form-group">
+    <label for="username" class="form-label">Username</label>
+    <input
+            type="text"
+            id="username"
+            value="{{ .user.Username }}"
+            class="form-input"
+            readonly
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="email" class="form-label">Email</label>
+    <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ .user.Email }}"
+            class="form-input"
+            required
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="home_city" class="form-label">Home City</label>
+    <input
+            type="text"
+            id="home_city"
+            name="home_city"
+            value="{{ .user.HomeCity }}"
+            placeholder="e.g. London, New York, Tokyo"
+            class="form-input"
+    >
+    <div class="help-text">This will be used to show weather on login</div>
+  </div>
+
+  <!-- Weather Notifications -->
+  <h3 class="section-title">Weather Notifications</h3>
+  <div class="checkbox-wrapper">
+    <input
+            type="checkbox"
+            id="notifications_enabled"
+            name="notifications_enabled"
+            class="form-checkbox"
+            {{ if .user.NotificationsEnabled }}checked{{ end }}
+    >
+    <label for="notifications_enabled">Enable weather alerts via email</label>
+  </div>
+
+  <h3 class="section-title">Alert Threshold</h3>
+  <div class="form-group">
+    <select id="alert_threshold" name="alert_threshold" class="form-select">
+      <option value="severe" {{ if eq .user.AlertThreshold "severe" }}selected{{ end }}>Severe conditions only</option>
+      <option value="moderate" {{ if eq .user.AlertThreshold "moderate" }}selected{{ end }}>Moderate and severe conditions</option>
+      <option value="all" {{ if eq .user.AlertThreshold "all" }}selected{{ end }}>All weather updates</option>
+    </select>
+    <div class="help-text">We'll send alerts to {{ .user.Email }} based on this preference</div>
+  </div>
+
+  <h3 class="section-title">Change Password</h3>
+
+  <div class="form-group">
+    <label for="current_password" class="form-label">Current Password</label>
+    <input
+            type="password"
+            id="current_password"
+            name="current_password"
+            class="form-input"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="new_password" class="form-label">New Password</label>
+    <input
+            type="password"
+            id="new_password"
+            name="new_password"
+            class="form-input"
+    >
+  </div>
+
+  <button type="submit" class="update-btn">Update Profile</button>
+</form>
+
+<div class="navigation-links">
+  <a href="/" class="navigation-link">← Back to home page</a>
+  <a href="/logout" class="navigation-link logout-link">Logout</a>
+</div>
+</div>
 </div>
 
 <!-- Success notification -->
@@ -461,31 +501,40 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Avatar color selection
-    const avatarOptions = document.querySelectorAll('.avatar-option');
-    const currentAvatar = document.getElementById('current-avatar');
-    const avatarColorInput = document.getElementById('avatar_color');
+    // Photo selection functionality
+    const photoOptions = document.querySelectorAll('.photo-option');
+    const currentPhoto = document.getElementById('current-photo');
+    const profilePhotoInput = document.getElementById('profile_photo');
 
-    avatarOptions.forEach(option => {
+    // Debug - log initial value
+    console.log("Initial profile photo value:", profilePhotoInput.value);
+
+    photoOptions.forEach(option => {
       option.addEventListener('click', function() {
         // Remove selected class from all options
-        avatarOptions.forEach(opt => opt.classList.remove('selected'));
+        photoOptions.forEach(opt => opt.classList.remove('selected'));
 
         // Add selected class to clicked option
         this.classList.add('selected');
 
-        // Get color from data attribute
-        const color = this.getAttribute('data-color');
+        // Get photo filename from data attribute
+        const photoFile = this.getAttribute('data-photo');
 
         // Update hidden input for form submission
-        avatarColorInput.value = color;
+        profilePhotoInput.value = photoFile;
 
-        // Remove all color classes from current avatar
-        currentAvatar.classList.remove('avatar-red', 'avatar-blue', 'avatar-green',
-                'avatar-purple', 'avatar-orange', 'avatar-pink');
+        // Debug - log updated value
+        console.log("Photo selected:", photoFile);
+        console.log("Hidden input value after update:", profilePhotoInput.value);
 
-        // Add selected color class
-        currentAvatar.classList.add(`avatar-${color}`);
+        // Update the current photo display
+        currentPhoto.src = `/static/profile_photos/${photoFile}`;
+
+        // Add animation
+        currentPhoto.classList.add('photo-changed');
+        setTimeout(() => {
+          currentPhoto.classList.remove('photo-changed');
+        }, 700);
       });
     });
 
@@ -493,49 +542,54 @@
     const form = document.getElementById('profile-form');
     const successNotification = document.getElementById('success-notification');
 
-    form.addEventListener('submit', function(e) {
-      // Check if there's already a success message from the server
-      const serverSuccessMessage = document.querySelector('.success-message');
-      if (serverSuccessMessage) {
-        return; // Let the form submit normally if we're returning from a successful update
-      }
-
-      // Basic validation for required fields
-      const requiredInputs = this.querySelectorAll('[required]');
-      let hasEmptyFields = false;
-
-      requiredInputs.forEach(input => {
-        if (!input.value.trim()) {
-          e.preventDefault();
-          hasEmptyFields = true;
-          input.style.borderColor = 'red';
-        } else {
-          input.style.borderColor = '';
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        // Debug - log form data
+        console.log('Form data before submission:');
+        const formData = new FormData(this);
+        for (let pair of formData.entries()) {
+          console.log(pair[0] + ': ' + pair[1]);
         }
+
+        // Check if there's already a success message from the server
+        const serverSuccessMessage = document.querySelector('.success-message');
+        if (serverSuccessMessage) {
+          return; // Let the form submit normally if we're returning from a successful update
+        }
+
+        // Basic validation for required fields
+        const requiredInputs = this.querySelectorAll('[required]');
+        let hasEmptyFields = false;
+
+        requiredInputs.forEach(input => {
+          if (!input.value.trim()) {
+            e.preventDefault();
+            hasEmptyFields = true;
+            input.style.borderColor = 'red';
+          } else {
+            input.style.borderColor = '';
+          }
+        });
+
+        if (hasEmptyFields) {
+          alert('Please fill in all required fields');
+          return;
+        }
+
+        // Password validation
+        const currentPassword = document.getElementById('current_password');
+        const newPassword = document.getElementById('new_password');
+
+        if ((currentPassword.value && !newPassword.value) || (!currentPassword.value && newPassword.value)) {
+          e.preventDefault();
+          alert('Both current and new password fields are required to change password');
+          return;
+        }
+
+        // Log form being submitted
+        console.log('Form being submitted with profile photo:', profilePhotoInput.value);
       });
-
-      if (hasEmptyFields) {
-        alert('Please fill in all required fields');
-        return;
-      }
-
-      // Password validation
-      const currentPassword = document.getElementById('current_password');
-      const newPassword = document.getElementById('new_password');
-
-      if ((currentPassword.value && !newPassword.value) || (!currentPassword.value && newPassword.value)) {
-        e.preventDefault();
-        alert('Both current and new password fields are required to change password');
-        return;
-      }
-
-      // For client-side demo, prevent the actual form submission and show the notification
-      if (window.location.hostname === 'localhost') {
-        e.preventDefault();
-        showSuccessNotification();
-      }
-      // Otherwise, let the form submit normally to the server
-    });
+    }
 
     // Show success notification
     function showSuccessNotification() {

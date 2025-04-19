@@ -9,6 +9,7 @@
 </head>
 <body class="dark-theme">
 <!-- Header -->
+<!-- Header -->
 <div class="header">
     <div class="header-logo">
         <a href="/" class="logo">
@@ -19,17 +20,18 @@
         <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
         <div class="nav-buttons">
             <a href="/dashboard" class="transparent-button">Home</a>
-            <a href="./travel-weather" class="transparent-button">Travel Plan</a>
+            <a href="/compare" class="transparent-button">Compare</a>
             <a href="/historical-comparison" class="transparent-button">Historical</a>
+            <a href="/travel-weather" class="transparent-button">Travel Plan</a>
             <a href="/activities" class="transparent-button">Activities</a>
             <a href="/alerts" class="transparent-button premium-feature">Alerts</a>
 
             <!-- Profile dropdown -->
             <div class="profile-dropdown">
-                <div class="profile-circle">
+                <div class="profile-circle" id="profileCircle">
                     <span id="profile-initial">U</span>
                 </div>
-                <div class="dropdown-content">
+                <div class="dropdown-content" id="dropdownContent">
                     <a href="/profile"><i class="fas fa-user"></i> Profile</a>
                     <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
@@ -243,12 +245,15 @@
             });
         });
 
-        // Set profile initial based on username
         const username = document.getElementById('username').textContent.trim();
         if (username && username !== 'User') {
-            document.getElementById('profile-initial').textContent = username.charAt(0);
+            const profileInitial = document.getElementById('profile-initial');
+            if (profileInitial) {
+                profileInitial.textContent = username.charAt(0).toUpperCase();
+            }
         }
     });
+
 </script>
 </body>
 </html>

@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize photo selection functionality
+    initPhotoSelection();
+
+    // Initialize avatar color selection
+    initAvatarColorSelection();
+
     // Get form elements
     const profileForm = document.querySelector('form');
     const inputs = document.querySelectorAll('.form-input');
@@ -96,6 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Check for success notification
+    checkForSuccessMessage();
+
     // Helper functions
     function showErrorMessage(element, message) {
         // Remove existing error message if any
@@ -182,6 +191,115 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Photo selection functionality
+    function initPhotoSelection() {
+        const photoOptions = document.querySelectorAll('.photo-option');
+        const currentPhoto = document.getElementById('current-photo');
+        const profilePhotoInput = document.getElementById('profile_photo');
+
+        if (!photoOptions.length || !currentPhoto || !profilePhotoInput) {
+            console.warn('Photo selection elements not found');
+            return;
+        }
+
+        photoOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                photoOptions.forEach(opt => opt.classList.remove('selected'));
+
+                // Add selected class to clicked option
+                this.classList.add('selected');
+
+                // Get photo filename from data attribute
+                const photoFile = this.getAttribute('data-photo');
+
+                // Update hidden input for form submission
+                profilePhotoInput.value = photoFile;
+
+                // Update the current photo display
+                currentPhoto.src = `/static/profile_photos/${photoFile}`;
+
+                // Add subtle animation to indicate change
+                currentPhoto.classList.add('photo-changed');
+                setTimeout(() => {
+                    currentPhoto.classList.remove('photo-changed');
+                }, 700);
+            });
+        });
+    }
+
+    // Avatar color selection
+    function initAvatarColorSelection() {
+        const avatarOptions = document.querySelectorAll('.avatar-option');
+        const currentAvatar = document.getElementById('current-avatar');
+        const avatarColorInput = document.getElementById('avatar_color');
+
+        if (!avatarOptions.length || !currentAvatar || !avatarColorInput) {
+            console.warn('Avatar selection elements not found');
+            return;
+        }
+
+        avatarOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                avatarOptions.forEach(opt => opt.classList.remove('selected'));
+
+                // Add selected class to clicked option
+                this.classList.add('selected');
+
+                // Get color from data attribute
+                const color = this.getAttribute('data-color');
+
+                // Update hidden input for form submission
+                avatarColorInput.value = color;
+
+                // Remove all color classes from current avatar
+                currentAvatar.classList.remove('avatar-red', 'avatar-blue', 'avatar-green',
+                    'avatar-purple', 'avatar-orange', 'avatar-pink');
+
+                // Add selected color class
+                currentAvatar.classList.add(`avatar-${color}`);
+
+                // Add subtle animation to indicate change
+                currentAvatar.classList.add('avatar-changed');
+                setTimeout(() => {
+                    currentAvatar.classList.remove('avatar-changed');
+                }, 700);
+            });
+        });
+    }
+
+    // Success notification handling
+    function checkForSuccessMessage() {
+        // Check if we need to show success notification on page load
+        // This happens when we're returning from a successful form submission
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('success')) {
+            showSuccessNotification();
+        }
+
+        // Also check if server returned a success message
+        const serverSuccessMessage = document.querySelector('.success-message');
+        if (serverSuccessMessage) {
+            // Hide server message after 3 seconds
+            setTimeout(function() {
+                serverSuccessMessage.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    function showSuccessNotification() {
+        const successNotification = document.getElementById('success-notification');
+        if (!successNotification) return;
+
+        successNotification.classList.add('show');
+
+        // Hide notification after 3 seconds
+        setTimeout(function() {
+            successNotification.classList.remove('show');
+        }, 3000);
+    }
+
     // Add custom styles
     addCustomStyles();
 
@@ -247,6 +365,44 @@ document.addEventListener('DOMContentLoaded', function() {
             
             .very-strong .strength-fill {
                 background-color: rgba(46, 204, 113, 0.8);
+            }
+            
+            /* Profile photo styles */
+            .photo-option {
+                cursor: pointer;
+                transition: all 0.2s ease;
+                border: 2px solid transparent;
+            }
+            
+            .photo-option:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            }
+            
+            .photo-option.selected {
+                border-color: #4e54c8;
+                box-shadow: 0 0 10px rgba(78, 84, 200, 0.5);
+            }
+            
+            @keyframes photoChanged {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            .photo-changed {
+                animation: photoChanged 0.7s ease;
+            }
+            
+            @keyframes avatarChanged {
+                0% { transform: rotate(0deg); }
+                25% { transform: rotate(-5deg); }
+                75% { transform: rotate(5deg); }
+                100% { transform: rotate(0deg); }
+            }
+            
+            .avatar-changed {
+                animation: avatarChanged 0.7s ease;
             }
         `;
         document.head.appendChild(style);

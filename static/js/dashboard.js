@@ -231,10 +231,11 @@ function updateWeatherMetrics() {
 }
 
 // Updated initializeUsername function that respects server-provided username
+// Updated initializeUsername function that handles profile photo
 function initializeUsername() {
     console.log('initializeUsername called');
     const usernameElement = document.getElementById('username');
-    const profileInitialElement = document.getElementById('profile-initial');
+    const profilePhotoElement = document.getElementById('profile-photo');
 
     if (!usernameElement) return;
 
@@ -263,11 +264,6 @@ function initializeUsername() {
 
     // Set the username in the UI
     usernameElement.textContent = displayUsername;
-
-    // Update profile initial
-    if (profileInitialElement) {
-        profileInitialElement.textContent = displayUsername.charAt(0).toUpperCase();
-    }
 
     console.log('Username initialized to:', displayUsername);
 }
