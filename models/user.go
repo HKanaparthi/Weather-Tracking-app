@@ -34,6 +34,7 @@ type UserStore interface {
 	UpdateUser(user *User) error
 	UpdateUserProfile(user *User) error // New method for profile updates
 	GetUsersWithDailyReports() ([]*User, error)
+	GetDB() *sql.DB // Add this method to get database connection
 	Close() error
 }
 
@@ -345,6 +346,9 @@ func handleUpdateError(err error) error {
 		return errors.New("duplicate entry error")
 	}
 	return err
+}
+func (s *MySQLStore) GetDB() *sql.DB {
+	return s.db
 }
 
 // ValidatePassword checks if the provided password matches the user's password

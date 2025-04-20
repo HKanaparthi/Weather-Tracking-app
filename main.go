@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -4067,6 +4068,35 @@ func main() {
 			c.JSON(http.StatusOK, gin.H{"success": true, "message": "Profile photo updated successfully"})
 		})
 	}
+
+	// ============= CHAT FEATURE INTEGRATION START =============
+
+	dbConn := userStore.GetDB()
+	chatService := services.NewChatService(dbConn)
+
+	// Initialize upload handler for chat images
+	uploadDir := "./static"
+	uploadHandler := handlers.NewUploadHandler(uploadDir)
+	uploadHandler.RegisterRoutes(router)
+
+	// Initialize chat handler
+	chatHandler := handlers.NewChatHandler(chatService)
+	chatHandler.RegisterRoutes(router)
+
+	// Create the chat_images directory if it doesn't exist
+	os.MkdirAll(filepath.Join("static", "chat_images"), 0755)
+
+	// Start a goroutine to clean up inactive users
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			if err := chatService.RemoveInactiveUsers(); err != nil {
+				log.Printf("Error removing inactive users: %v", err)
+			}
+		}
+	}()
+
+	// ============= CHAT FEATURE INTEGRATION END =============
 
 	// Pre-initialize notification service
 	initializeNotificationService()

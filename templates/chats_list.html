@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/chat_list.css">
+    <!-- Add font-awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="logo">
+            <a href="/dashboard">
+                <img src="../static/Mainlogo.png" alt="Weather App Logo" height="40">
+            </a>
+        </div>
+        <div class="user-info">
+            <div class="avatar" style="background-color: {{if .User.AvatarColor}}{{.User.AvatarColor}}{{else}}#3498db{{end}}">
+                {{if .User.ProfilePhoto}}
+                <img src="/static/profile_photos/{{.User.ProfilePhoto}}" alt="{{.User.Username}}">
+                {{else}}
+                {{.User.Username}}
+                {{end}}
+            </div>
+            <span class="username">{{.User.Username}}</span>
+        </div>
+    </header>
+
+    <div class="page-header">
+        <h1>Weather Chats</h1>
+        <p>Connect with people in cities around the world</p>
+        <div class="nav-links">
+            <a href="/dashboard" class="btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+    </div>
+
+    <main>
+        <section class="cities-section">
+            <h2>Your Cities</h2>
+            <div class="cities-grid">
+                {{if .SavedCities}}
+                {{range .SavedCities}}
+                <a href="/chat?city={{.}}" class="city-card">
+                    <h3>{{.}}</h3>
+                    <div class="city-weather" data-city="{{.}}">
+                        <span class="temp">--°</span>
+                        <span class="condition">--</span>
+                    </div>
+                    <div class="city-chat-info">
+                        <span><i class="fas fa-comment"></i> Chat Now</span>
+                    </div>
+                </a>
+                {{end}}
+                {{else}}
+                <div class="no-cities">
+                    <p>You haven't saved any cities yet.</p>
+                    <a href="/location-options" class="btn">Add Cities</a>
+                </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="cities-section">
+            <h2>Popular Chats</h2>
+            <div class="cities-grid">
+                {{if .PopularCities}}
+                {{range .PopularCities}}
+                <a href="/chat?city={{.Name}}" class="city-card popular">
+                    <h3>{{.Name}}</h3>
+                    <div class="city-weather" data-city="{{.Name}}">
+                        <span class="temp">--°</span>
+                        <span class="condition">--</span>
+                    </div>
+                    <div class="city-chat-info">
+                        <span><i class="fas fa-users"></i> {{.ActiveUsers}} active</span>
+                        <span><i class="fas fa-comment"></i> {{.MessageCount}} messages today</span>
+                    </div>
+                </a>
+                {{end}}
+                {{else}}
+                <div class="no-cities">
+                    <p>No active chat rooms found.</p>
+                </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="search-section">
+            <h2>Join Any City Chat</h2>
+            <div class="search-box">
+                <input type="text" id="city-search" placeholder="Enter city name...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div id="search-results" class="search-results"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Weather App</p>
+    </footer>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load weather for city cards
+        document.querySelectorAll('.city-weather').forEach(cityWeather => {
+            const cityName = cityWeather.dataset.city;
+            loadCityWeather(cityName, cityWeather);
+        });
+
+        // City search functionality
+        const searchInput = document.getElementById('city-search');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+
+        searchBtn.addEventListener('click', searchCity);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCity();
+            }
+        });
+
+        function searchCity() {
+            const query = searchInput.value.trim();
+            if (query.length < 2) return;
+
+            // Show loading indicator
+            searchResults.innerHTML = '<div class="loading">Searching...</div>';
+
+            // Use your existing location API to search for cities
+            fetch(`/api/geocode?location=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+
+                    if (data.length === 0) {
+                        searchResults.innerHTML = '<div class="no-results">No cities found</div>';
+                        return;
+                    }
+
+                    data.forEach(city => {
+                        const cityEl = document.createElement('div');
+                        cityEl.className = 'search-result';
+                        cityEl.innerHTML = `
+                                <div class="city-name">${city.name}${city.country ? ', ' + city.country : ''}</div>
+                                <a href="/chat?city=${encodeURIComponent(city.name)}" class="btn-join">Join Chat</a>
+                            `;
+                        searchResults.appendChild(cityEl);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error searching cities:', error);
+                    searchResults.innerHTML = '<div class="error">Failed to search cities</div>';
+                });
+        }
+
+        // Load weather for a city
+        function loadCityWeather(cityName, element) {
+            fetch(`/api/weather?city=${encodeURIComponent(cityName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    element.querySelector('.temp').textContent = `${Math.round(data.main.temp)}°`;
+                    element.querySelector('.condition').textContent = data.weather[0].main;
+                })
+                .catch(error => {
+                    console.error(`Error loading weather for ${cityName}:`, error);
+                });
+        }
+    });
+</script>
+</body>
+</html>

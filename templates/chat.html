@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.title}}</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+  <link rel="stylesheet" href="../static/css/chat.css">
+  <!-- Add font-awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <a href="/dashboard">
+        <img src="/static/Mainlogo.png" alt="Weather App Logo" height="40">
+      </a>
+    </div>
+    <h1>Weather Chats</h1>
+    <div class="user-info">
+      <div class="avatar" style="background-color: {{if .User.AvatarColor}}{{.User.AvatarColor}}{{else}}#3498db{{end}}">
+        {{if .User.ProfilePhoto}}
+        <img src="/static/profile_photos/{{.User.ProfilePhoto}}" alt="{{.User.Username}}">
+        {{else}}
+        {{.User.Username}}
+        {{end}}
+      </div>
+      <span class="username">{{.User.Username}}</span>
+    </div>
+  </header>
+
+  <div class="chat-header">
+    <div class="city-info">
+      <h2>{{.CityName}}</h2>
+      <div class="current-weather">
+        <span id="current-temp">--°</span>
+        <span id="current-condition">--</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+      <a href="/weather?city={{.CityName}}" class="btn-weather"><i class="fas fa-cloud-sun"></i> Weather Details</a>
+    </div>
+  </div>
+
+  <main>
+    <section class="chat-container">
+      <div class="chat-header">
+        <div class="active-users">
+          <i class="fas fa-users"></i> <span id="active-users-count">0</span> active
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <!-- Messages will be loaded here -->
+      </div>
+
+      <div class="chat-input">
+        <form id="message-form">
+          <input type="text" id="message-text" placeholder="Type a message..." required>
+          <button type="button" id="attach-image" class="btn-icon">
+            <i class="fas fa-image"></i>
+          </button>
+          <input type="file" id="image-upload" accept="image/*" style="display: none;">
+          <button type="submit" class="btn-send">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+        <div id="image-preview" class="image-preview" style="display: none;">
+          <img id="preview-img" src="" alt="Preview">
+          <button id="remove-image" class="btn-icon">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="weather-summary">
+        <h3>Today's Weather</h3>
+        <div id="weather-summary-content">
+          <!-- Weather summary will be loaded here -->
+        </div>
+      </div>
+
+      <div class="recent-photos">
+        <h3>Recent Photos</h3>
+        <div id="recent-photos-container">
+          <!-- Recent photos will be loaded here -->
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Weather App</p>
+  </footer>
+</div>
+
+<!-- Message template (hidden) -->
+<template id="message-template">
+  <div class="message">
+    <div class="message-avatar">
+      <img src="" alt="User Avatar">
+    </div>
+    <div class="message-content">
+      <div class="message-header">
+        <span class="message-username"></span>
+        <span class="message-time"></span>
+      </div>
+      <div class="message-text"></div>
+      <div class="message-image" style="display: none;">
+        <img src="" alt="Shared Image">
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  // Store the city name for use in JS
+  const cityName = "{{.CityName}}";
+  const userID = "{{.UserID}}";
+  const username = "{{.Username}}";
+</script>
+<script src="../static/js/chat.js"></script>
+</body>
+</html>
