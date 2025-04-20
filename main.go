@@ -3708,7 +3708,9 @@ func main() {
 		}
 		c.Next()
 	})
-
+	dbConn := userStore.GetDB()
+	savedCitiesHandler := handlers.NewSavedCitiesHandler(dbConn)
+	savedCitiesHandler.RegisterRoutes(router)
 	// Create auth handlers
 	authHandler := handlers.NewAuthHandler(userStore)
 	activityHandler := handlers.NewActivityHandler(apiKey)
@@ -4071,7 +4073,7 @@ func main() {
 
 	// ============= CHAT FEATURE INTEGRATION START =============
 
-	dbConn := userStore.GetDB()
+	dbConn = userStore.GetDB()
 	chatService := services.NewChatService(dbConn)
 
 	// Initialize upload handler for chat images

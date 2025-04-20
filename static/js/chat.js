@@ -13,30 +13,92 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeUsersCount = document.getElementById('active-users-count');
     const weatherSummary = document.getElementById('weather-summary-content');
     const recentPhotosContainer = document.getElementById('recent-photos-container');
+    const createPollBtn = document.getElementById('create-poll');
+    const pollModal = document.getElementById('poll-modal');
+    const pollForm = document.getElementById('poll-creator-form');
+    const pollOptionsContainer = document.getElementById('poll-options-container');
+    const addOptionBtn = document.getElementById('poll-option-add');
+    const pollCloseBtn = document.querySelector('.poll-modal-close');
+    const pollCancelBtn = document.getElementById('poll-cancel');
 
     // Message template
     const messageTemplate = document.getElementById('message-template');
+    // Poll templates
+    const pollTemplate = document.getElementById('poll-template');
+    const pollOptionTemplate = document.getElementById('poll-option-template');
 
     // Variables
     let selectedImage = null;
     let chatRefreshInterval;
     let weatherRefreshInterval;
+    // Make sure polls is defined globally
+    window.polls = {};
 
     // Initialize
     init();
 
     function init() {
+        // Verify templates exist
+        validateTemplates();
+
+        // Update city name in the header
+        updateCityName();
+
         // Load initial chat messages
         loadChatRoom();
 
-        // Load weather data
+        // Load weather data immediately
         loadWeatherData();
 
         // Setup event listeners
         setupEventListeners();
 
+        // Setup poll event listeners
+        setupPollEventListeners();
+
         // Start refresh intervals
         startRefreshIntervals();
+
+        // Debug poll rendering
+        console.log("Init complete, checking poll templates:", {
+            messageTemplate: !!messageTemplate,
+            pollTemplate: !!pollTemplate,
+            pollOptionTemplate: !!pollOptionTemplate,
+            pollsObject: window.polls
+        });
+    }
+
+    // Validate that all required templates exist
+    function validateTemplates() {
+        const requiredTemplates = [
+            { id: 'message-template', name: 'Message Template' },
+            { id: 'poll-template', name: 'Poll Template' },
+            { id: 'poll-option-template', name: 'Poll Option Template' }
+        ];
+
+        for (const template of requiredTemplates) {
+            if (!document.getElementById(template.id)) {
+                console.error(`Required template missing: ${template.name} (${template.id})`);
+            }
+        }
+    }
+
+    // Make sure city name is displayed
+    function updateCityName() {
+        // Get all h2 elements that might contain the city name
+        const cityHeaders = document.querySelectorAll('h2');
+        cityHeaders.forEach(header => {
+            // If the header appears to be for a city name (empty or contains a template variable)
+            if (header.textContent.trim() === '' || header.textContent.includes('{{')) {
+                header.textContent = cityName || 'Charlotte';
+            }
+        });
+
+        // Also ensure the city name is visible in the header if it exists
+        const cityInfo = document.querySelector('.city-info h2');
+        if (cityInfo) {
+            cityInfo.textContent = cityName || 'Charlotte';
+        }
     }
 
     function setupEventListeners() {
@@ -52,8 +114,136 @@ document.addEventListener('DOMContentLoaded', function() {
         removeImageBtn.addEventListener('click', removeSelectedImage);
 
         // Auto scroll when new messages arrive
-        chatMessages.addEventListener('DOMNodeInserted', () => {
+        // Replace DOMNodeInserted with MutationObserver for better performance
+        const observer = new MutationObserver((mutations) => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        observer.observe(chatMessages, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    function setupPollEventListeners() {
+        // Open poll modal
+        createPollBtn.addEventListener('click', function() {
+            pollModal.style.display = 'flex';
+        });
+
+        // Close poll modal
+        function closePollModal() {
+            pollModal.style.display = 'none';
+            pollForm.reset();
+
+            // Reset options to default (2 options)
+            pollOptionsContainer.innerHTML = `
+                <div class="poll-option-input">
+                    <input type="text" class="poll-option-text" placeholder="Option 1" required>
+                </div>
+                <div class="poll-option-input">
+                    <input type="text" class="poll-option-text" placeholder="Option 2" required>
+                </div>
+            `;
+        }
+
+        pollCloseBtn.addEventListener('click', closePollModal);
+        pollCancelBtn.addEventListener('click', closePollModal);
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === pollModal) {
+                closePollModal();
+            }
+        });
+
+        // Add option
+        addOptionBtn.addEventListener('click', function() {
+            const optionInputs = document.querySelectorAll('.poll-option-input');
+            const newIndex = optionInputs.length + 1;
+
+            const newOption = document.createElement('div');
+            newOption.className = 'poll-option-input';
+            newOption.innerHTML = `
+                <input type="text" class="poll-option-text" placeholder="Option ${newIndex}" required>
+                <button type="button" class="remove-option"><i class="fas fa-times"></i></button>
+            `;
+
+            // Add remove button functionality
+            const removeBtn = newOption.querySelector('.remove-option');
+            removeBtn.addEventListener('click', function() {
+                newOption.remove();
+
+                // Update placeholders
+                document.querySelectorAll('.poll-option-text').forEach((input, index) => {
+                    input.placeholder = `Option ${index + 1}`;
+                });
+            });
+
+            pollOptionsContainer.appendChild(newOption);
+        });
+
+        // Submit poll form
+        pollForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const question = document.getElementById('poll-question').value.trim();
+            const optionInputs = document.querySelectorAll('.poll-option-text');
+
+            // Validate
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+
+            if (optionInputs.length < 2) {
+                alert('Please add at least 2 options');
+                return;
+            }
+
+            // Create options array
+            const options = [];
+            optionInputs.forEach(input => {
+                const text = input.value.trim();
+                if (text) {
+                    options.push({
+                        id: 'option_' + Math.random().toString(36).substr(2, 9),
+                        text: text,
+                        votes: 0
+                    });
+                }
+            });
+
+            if (options.length < 2) {
+                alert('Please add at least 2 non-empty options');
+                return;
+            }
+
+            // Create poll object
+            const pollId = 'poll_' + Math.random().toString(36).substr(2, 9);
+            const pollData = {
+                id: pollId,
+                question: question,
+                options: options,
+                voters: [],
+                createdBy: {
+                    id: userID,
+                    username: username
+                },
+                createdAt: new Date().toISOString()
+            };
+
+            // Store poll in memory
+            window.polls[pollId] = pollData;
+
+            // Log for debugging
+            console.log("Created poll:", pollData);
+
+            // Send poll message
+            sendPollMessage(pollData);
+
+            // Close modal
+            closePollModal();
         });
     }
 
@@ -73,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
-// Page is visible,
+            // Page is visible,
             // Restart refresh intervals
             chatRefreshInterval = setInterval(loadChatRoom, 5000);
             weatherRefreshInterval = setInterval(loadWeatherData, 600000);
@@ -99,50 +289,247 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update active users count
             activeUsersCount.textContent = data.active_users;
 
+            // Check for poll messages
+            const pollMessages = data.messages.filter(msg =>
+                msg.message && msg.message.startsWith('Poll:') && msg.poll_data
+            );
+
+            if (pollMessages.length > 0) {
+                console.log("Found poll messages:", pollMessages.length);
+            }
+
             // Update messages
             updateChatMessages(data.messages);
 
             // Update recent photos
             updateRecentPhotos(data.messages);
+
+            // Process poll votes in messages
+            processPollVotes(data.messages);
         } catch (error) {
             console.error('Error loading chat room:', error);
         }
     }
 
-    // Load weather data
+    // Load weather data with structure matching the weather.html template
     async function loadWeatherData() {
-        try {
-            const response = await fetch(`/api/weather/current?city=${encodeURIComponent(cityName)}`);
-            if (!response.ok) throw new Error('Failed to load weather data');
+        // Show temporary loading state
+        const currentTemp = document.getElementById('current-temp');
+        const currentCondition = document.getElementById('current-condition');
 
-            const data = await response.json();
+        // If elements are empty, show loading indicators
+        if (!currentTemp.textContent || currentTemp.textContent === '--°') {
+            currentTemp.textContent = '--°';
+        }
 
-            // Update current weather
-            document.getElementById('current-temp').textContent = `${Math.round(data.main.temp)}°`;
-            document.getElementById('current-condition').textContent = data.weather[0].main;
+        if (!currentCondition.textContent || currentCondition.textContent === '--') {
+            currentCondition.textContent = '--';
+        }
+
+        // Try all possible API endpoints until one works
+        const apiEndpoints = [
+            `/api/weather?city=${encodeURIComponent(cityName)}`,
+            `/weather?city=${encodeURIComponent(cityName)}`,
+            `/api/weather/current?city=${encodeURIComponent(cityName)}`
+        ];
+
+        let weatherData = null;
+        let successfulEndpoint = '';
+
+        // Try each endpoint until one works
+        for (let endpoint of apiEndpoints) {
+            try {
+                console.log(`Trying to fetch weather data from ${endpoint}`);
+                const response = await fetch(endpoint);
+                if (response.ok) {
+                    weatherData = await response.json();
+                    successfulEndpoint = endpoint;
+                    console.log(`Weather data loaded from ${endpoint}`);
+                    break; // Exit the loop if successful
+                }
+            } catch (error) {
+                console.log(`Failed to load from ${endpoint}:`, error);
+                // Continue to next endpoint
+            }
+        }
+
+        // If we got weather data from any endpoint
+        if (weatherData) {
+            console.log('Successfully loaded weather data structure:', weatherData);
+
+            // Extract temperature using the same approach as weather.html
+            let temp = null;
+
+            // Try different possible locations for temperature data
+            if (weatherData.Current && weatherData.Current.Temperature !== undefined) {
+                temp = weatherData.Current.Temperature;
+            } else if (weatherData.Current && weatherData.Current.Temp !== undefined) {
+                temp = weatherData.Current.Temp;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.Temp !== undefined) {
+                temp = weatherData.Current.Main.Temp;
+            } else if (weatherData.temperature !== undefined) {
+                temp = weatherData.temperature;
+            } else if (weatherData.temp !== undefined) {
+                temp = weatherData.temp;
+            } else if (weatherData.main && weatherData.main.temp !== undefined) {
+                temp = weatherData.main.temp;
+            }
+
+            // Format and display temperature
+            if (temp !== null) {
+                if (typeof temp === 'number') {
+                    currentTemp.textContent = `${Math.round(temp)}°`;
+                } else {
+                    currentTemp.textContent = `${temp}°`;
+                }
+            }
+
+            // Extract weather condition
+            let condition = 'Unknown';
+
+            // Try different possible locations for condition data
+            if (weatherData.Current && weatherData.Current.Condition) {
+                condition = weatherData.Current.Condition;
+            } else if (weatherData.Current && weatherData.Current.Weather && weatherData.Current.Weather.length > 0) {
+                condition = weatherData.Current.Weather[0].description || weatherData.Current.Weather[0].main;
+            } else if (weatherData.condition) {
+                condition = weatherData.condition;
+            } else if (weatherData.weather && weatherData.weather.length > 0) {
+                condition = weatherData.weather[0].description || weatherData.weather[0].main;
+            }
+
+            // Display condition
+            currentCondition.textContent = condition;
+
+            // Extract high temperature
+            let highTemp = temp; // Default to current temp if high not available
+
+            if (weatherData.Current && weatherData.Current.MaxTemp !== undefined) {
+                highTemp = weatherData.Current.MaxTemp;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.TempMax !== undefined) {
+                highTemp = weatherData.Current.Main.TempMax;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.temp_max !== undefined) {
+                highTemp = weatherData.Current.Main.temp_max;
+            } else if (weatherData.temp_max !== undefined) {
+                highTemp = weatherData.temp_max;
+            } else if (weatherData.main && weatherData.main.temp_max !== undefined) {
+                highTemp = weatherData.main.temp_max;
+            } else if (weatherData.high !== undefined) {
+                highTemp = weatherData.high;
+            }
+
+            // Extract low temperature
+            let lowTemp = temp; // Default to current temp if low not available
+
+            if (weatherData.Current && weatherData.Current.MinTemp !== undefined) {
+                lowTemp = weatherData.Current.MinTemp;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.TempMin !== undefined) {
+                lowTemp = weatherData.Current.Main.TempMin;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.temp_min !== undefined) {
+                lowTemp = weatherData.Current.Main.temp_min;
+            } else if (weatherData.temp_min !== undefined) {
+                lowTemp = weatherData.temp_min;
+            } else if (weatherData.main && weatherData.main.temp_min !== undefined) {
+                lowTemp = weatherData.main.temp_min;
+            } else if (weatherData.low !== undefined) {
+                lowTemp = weatherData.low;
+            }
+
+            // Extract wind speed
+            let windSpeed = 0;
+
+            if (weatherData.Current && weatherData.Current.WindSpeed !== undefined) {
+                windSpeed = weatherData.Current.WindSpeed;
+            } else if (weatherData.Current && weatherData.Current.Wind && weatherData.Current.Wind.Speed !== undefined) {
+                windSpeed = weatherData.Current.Wind.Speed;
+            } else if (weatherData.wind_speed !== undefined) {
+                windSpeed = weatherData.wind_speed;
+            } else if (weatherData.wind && weatherData.wind.speed !== undefined) {
+                windSpeed = weatherData.wind.speed;
+            }
+
+            // Extract humidity
+            let humidity = 0;
+
+            if (weatherData.Current && weatherData.Current.Humidity !== undefined) {
+                humidity = weatherData.Current.Humidity;
+            } else if (weatherData.Current && weatherData.Current.Main && weatherData.Current.Main.Humidity !== undefined) {
+                humidity = weatherData.Current.Main.Humidity;
+            } else if (weatherData.humidity !== undefined) {
+                humidity = weatherData.humidity;
+            } else if (weatherData.main && weatherData.main.humidity !== undefined) {
+                humidity = weatherData.main.humidity;
+            }
 
             // Update weather summary
             weatherSummary.innerHTML = `
                 <div class="weather-detail">
                     <i class="fas fa-temperature-high"></i>
-                    <span>High: ${Math.round(data.main.temp_max)}°</span>
+                    <span>High: ${Math.round(highTemp)}°</span>
                 </div>
                 <div class="weather-detail">
                     <i class="fas fa-temperature-low"></i>
-                    <span>Low: ${Math.round(data.main.temp_min)}°</span>
+                    <span>Low: ${Math.round(lowTemp)}°</span>
                 </div>
                 <div class="weather-detail">
                     <i class="fas fa-wind"></i>
-                    <span>Wind: ${Math.round(data.wind.speed)} mph</span>
+                    <span>Wind: ${Math.round(windSpeed)} mph</span>
                 </div>
                 <div class="weather-detail">
                     <i class="fas fa-tint"></i>
-                    <span>Humidity: ${data.main.humidity}%</span>
+                    <span>Humidity: ${humidity}%</span>
                 </div>
             `;
-        } catch (error) {
-            console.error('Error loading weather data:', error);
+        } else {
+            // If all API calls failed, show error message
+            console.error('All weather API endpoints failed');
+
+            currentTemp.textContent = '--°';
+            currentCondition.textContent = '--';
+
+            weatherSummary.innerHTML = `
+                <div class="weather-detail">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Weather data unavailable</span>
+                </div>
+                <div class="weather-detail">
+                    <i class="fas fa-sync"></i>
+                    <span>Try refreshing the page</span>
+                </div>
+            `;
         }
+    }
+
+    // Process poll votes from messages
+    function processPollVotes(messages) {
+        messages.forEach(msg => {
+            if (msg.message && msg.message.startsWith('Voted on poll:') && msg.poll_vote) {
+                try {
+                    const voteData = JSON.parse(msg.poll_vote);
+                    const { pollId, optionId } = voteData;
+
+                    // Update poll data if exists
+                    if (window.polls[pollId]) {
+                        // Check if user has already voted
+                        if (!window.polls[pollId].voters.includes(msg.user_id)) {
+                            window.polls[pollId].voters.push(msg.user_id);
+
+                            // Update votes
+                            window.polls[pollId].options.forEach(option => {
+                                if (option.id === optionId) {
+                                    option.votes++;
+                                }
+                            });
+
+                            // Update UI
+                            updatePollUI(pollId);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error processing poll vote:', error);
+                }
+            }
+        });
     }
 
     // Update activity status
@@ -209,6 +596,143 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error sending message:', error);
             alert('Failed to send message. Please try again.');
         }
+    }
+
+    // Send poll message
+    async function sendPollMessage(pollData) {
+        // Create message data
+        const messageData = {
+            city_name: cityName,
+            message: 'Poll: ' + pollData.question,
+            poll_data: JSON.stringify(pollData)
+        };
+
+        console.log("Sending poll message:", messageData);
+
+        try {
+            const response = await fetch('/api/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(messageData)
+            });
+
+            if (!response.ok) throw new Error('Failed to send poll');
+
+            // Force refresh chat
+            loadChatRoom();
+        } catch (error) {
+            console.error('Error sending poll:', error);
+            alert('Failed to send poll. Please try again.');
+        }
+    }
+
+    // Vote on a poll
+    async function votePoll(pollId, optionId, messageId) {
+        // Check if poll exists
+        const pollData = window.polls[pollId];
+        if (!pollData) {
+            console.error('Poll not found:', pollId);
+            return;
+        }
+
+        // Check if user has already voted
+        if (pollData.voters.includes(userID)) {
+            console.log('User already voted');
+            return;
+        }
+
+        // Update poll data
+        pollData.voters.push(userID);
+        pollData.options.forEach(option => {
+            if (option.id === optionId) {
+                option.votes++;
+            }
+        });
+
+        // Update UI
+        updatePollUI(pollId);
+
+        // Send vote to server
+        try {
+            const response = await fetch('/api/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    city_name: cityName,
+                    message: `Voted on poll: ${pollData.question}`,
+                    poll_vote: JSON.stringify({
+                        pollId: pollId,
+                        optionId: optionId,
+                        messageId: messageId
+                    })
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to send vote');
+
+            // Force refresh chat
+            loadChatRoom();
+        } catch (error) {
+            console.error('Error sending vote:', error);
+
+            // Revert vote if failed
+            const index = pollData.voters.indexOf(userID);
+            if (index > -1) {
+                pollData.voters.splice(index, 1);
+            }
+
+            pollData.options.forEach(option => {
+                if (option.id === optionId) {
+                    option.votes--;
+                }
+            });
+
+            updatePollUI(pollId);
+
+            alert('Failed to send vote. Please try again.');
+        }
+    }
+
+    // Update poll UI after voting
+    function updatePollUI(pollId) {
+        // Find poll in DOM
+        const pollElements = document.querySelectorAll(`.poll-container[data-poll-id="${pollId}"]`);
+
+        pollElements.forEach(pollElement => {
+            const pollData = window.polls[pollId];
+            if (!pollData) return;
+
+            // Update voters count
+            pollElement.querySelector('.poll-voters').textContent =
+                `${pollData.voters.length} vote${pollData.voters.length !== 1 ? 's' : ''}`;
+
+            // Calculate total votes
+            const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
+
+            // Update options
+            pollData.options.forEach(option => {
+                const optionElement = pollElement.querySelector(`.poll-option[data-option-id="${option.id}"]`);
+                if (!optionElement) return;
+
+                // Calculate percentage
+                const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+
+                // Update percentage text
+                optionElement.querySelector('.poll-option-percentage').textContent = `${percentage}%`;
+
+                // Update progress bar width
+                optionElement.querySelector('.poll-option-progress').style.width = `${percentage}%`;
+
+                // Disable clicking on all options
+                optionElement.style.cursor = 'default';
+                const newOption = optionElement.cloneNode(true);
+                optionElement.parentNode.replaceChild(newOption, optionElement);
+            });
+        });
     }
 
     // Handle image upload
@@ -285,6 +809,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Create message element
     function createMessageElement(msg) {
+        // Make sure the message template exists
+        if (!messageTemplate) {
+            console.error("Message template not found!");
+            return document.createElement('div');
+        }
+
         const messageEl = document.importNode(messageTemplate.content, true).firstElementChild;
         messageEl.dataset.id = msg.id;
 
@@ -305,6 +835,132 @@ document.addEventListener('DOMContentLoaded', function() {
             image.src = msg.image_url;
             image.alt = `Shared by ${msg.username}`;
             imageContainer.style.display = 'block';
+        }
+
+        // Handle poll if present
+        if (msg.message && msg.message.startsWith('Poll:') && msg.poll_data) {
+            try {
+                console.log("Rendering poll in message:", msg.id);
+
+                const pollData = JSON.parse(msg.poll_data);
+                console.log("Parsed poll data:", pollData);
+
+                // Create poll element
+                const pollContainer = messageEl.querySelector('.message-poll');
+                if (!pollContainer) {
+                    console.error("Poll container not found in message element");
+                    return messageEl;
+                }
+
+                pollContainer.style.display = 'block';
+
+                // Make sure the poll template exists
+                if (!pollTemplate) {
+                    console.error("Poll template not found!");
+                    return messageEl;
+                }
+
+                // Use the poll template
+                const pollElement = document.importNode(pollTemplate.content, true).firstElementChild;
+
+                if (!pollElement) {
+                    console.error("Failed to clone poll template!");
+                    return messageEl;
+                }
+
+                // Set poll data
+                pollElement.dataset.pollId = pollData.id;
+
+                const questionEl = pollElement.querySelector('.poll-question');
+                if (questionEl) {
+                    questionEl.textContent = pollData.question;
+                }
+
+                const votersEl = pollElement.querySelector('.poll-voters');
+                if (votersEl) {
+                    votersEl.textContent = `${pollData.voters.length} vote${pollData.voters.length !== 1 ? 's' : ''}`;
+                }
+
+                const authorEl = pollElement.querySelector('.poll-author');
+                if (authorEl) {
+                    authorEl.textContent = pollData.createdBy.username;
+                }
+
+                // Create options
+                const pollOptionsContainer = pollElement.querySelector('.poll-options');
+                if (!pollOptionsContainer) {
+                    console.error("Poll options container not found");
+                    return messageEl;
+                }
+
+                // Calculate total votes
+                const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
+
+                // Check if current user has voted
+                const hasVoted = pollData.voters.includes(userID);
+
+                // Add options
+                pollData.options.forEach(option => {
+                    // Make sure the poll option template exists
+                    if (!pollOptionTemplate) {
+                        console.error("Poll option template not found!");
+                        return;
+                    }
+
+                    // Use the poll option template
+                    const optionElement = document.importNode(pollOptionTemplate.content, true).firstElementChild;
+
+                    if (!optionElement) {
+                        console.error("Failed to clone poll option template!");
+                        return;
+                    }
+
+                    // Set option data
+                    optionElement.dataset.optionId = option.id;
+
+                    // Calculate percentage
+                    const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+
+                    // Set option text
+                    const labelEl = optionElement.querySelector('.poll-option-label');
+                    if (labelEl) {
+                        labelEl.textContent = option.text;
+                    }
+
+                    const percentageEl = optionElement.querySelector('.poll-option-percentage');
+                    if (percentageEl) {
+                        percentageEl.textContent = `${percentage}%`;
+                    }
+
+                    const progressEl = optionElement.querySelector('.poll-option-progress');
+                    if (progressEl) {
+                        progressEl.style.width = `${percentage}%`;
+                    }
+
+                    // If user has already voted
+                    if (hasVoted) {
+                        optionElement.style.cursor = 'default';
+                    } else {
+                        // Add click event
+                        optionElement.addEventListener('click', function() {
+                            votePoll(pollData.id, option.id, msg.id);
+                        });
+                    }
+
+                    // Add to options container
+                    pollOptionsContainer.appendChild(optionElement);
+                });
+
+                // Add poll to message
+                pollContainer.appendChild(pollElement);
+
+                // Store poll in memory if not already there
+                if (!window.polls[pollData.id]) {
+                    window.polls[pollData.id] = pollData;
+                }
+            } catch (error) {
+                console.error('Error rendering poll:', error);
+            }
         }
 
         // Mark own messages
@@ -330,30 +986,75 @@ document.addEventListener('DOMContentLoaded', function() {
         messagesWithImages.forEach(msg => {
             const photoEl = document.createElement('div');
             photoEl.className = 'photo-thumbnail';
-            photoEl.innerHTML = `<img src="${msg.image_url}" alt="Weather photo by ${msg.username}">`;
 
-            // Add click event to show full image
-            photoEl.addEventListener('click', () => {
-                const fullImg = document.createElement('div');
-                fullImg.className = 'fullscreen-image';
-                fullImg.innerHTML = `
-                    <div class="fullscreen-image-content">
-                        <img src="${msg.image_url}" alt="Weather photo by ${msg.username}">
-                        <div class="fullscreen-caption">
-                            <p>Shared by ${msg.username} at ${formatTime(new Date(msg.created_at))}</p>
-                        </div>
-                        <button class="close-fullscreen">&times;</button>
+            // Format time for alt text
+            const msgDate = new Date(msg.created_at);
+            const formattedTime = `${msgDate.getHours().toString().padStart(2, '0')}:${msgDate.getMinutes().toString().padStart(2, '0')}`;
+
+            photoEl.innerHTML = `<img src="${msg.image_url}" alt="Weather photo by ${msg.username} at ${formattedTime}">`;
+
+            // Add click event to show fullscreen image
+            photoEl.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                // Create the fullscreen container
+                const fullscreenContainer = document.createElement('div');
+                fullscreenContainer.className = 'fullscreen-image';
+
+                // Create content container
+                const contentContainer = document.createElement('div');
+                contentContainer.className = 'fullscreen-image-content';
+
+                // Add image and caption
+                contentContainer.innerHTML = `
+                    <img src="${msg.image_url}" alt="Weather photo by ${msg.username}">
+                    <div class="fullscreen-caption">
+                        <p>Shared by ${msg.username} at ${formatTime(new Date(msg.created_at))}</p>
                     </div>
+                    <button class="close-fullscreen">&times;</button>
                 `;
 
-                document.body.appendChild(fullImg);
+                // Add to document
+                fullscreenContainer.appendChild(contentContainer);
+                document.body.appendChild(fullscreenContainer);
 
-                // Close on click
-                fullImg.addEventListener('click', e => {
-                    if (e.target === fullImg || e.target.className === 'close-fullscreen') {
-                        document.body.removeChild(fullImg);
+                // Prevent scrolling on the body
+                document.body.style.overflow = 'hidden';
+
+                // Close on click outside or close button
+                fullscreenContainer.addEventListener('click', function(e) {
+                    if (e.target === fullscreenContainer || e.target.className === 'close-fullscreen') {
+                        // Add exit animation
+                        fullscreenContainer.style.animation = 'fadeIn 0.3s ease reverse';
+                        contentContainer.style.animation = 'scaleIn 0.3s ease reverse';
+
+                        // Remove after animation completes
+                        setTimeout(() => {
+                            document.body.removeChild(fullscreenContainer);
+                            document.body.style.overflow = '';
+                        }, 300);
                     }
                 });
+
+                // Close on escape key
+                function handleEscKey(e) {
+                    if (e.key === 'Escape') {
+                        // Add exit animation
+                        fullscreenContainer.style.animation = 'fadeIn 0.3s ease reverse';
+                        contentContainer.style.animation = 'scaleIn 0.3s ease reverse';
+
+                        // Remove after animation completes
+                        setTimeout(() => {
+                            document.body.removeChild(fullscreenContainer);
+                            document.body.style.overflow = '';
+                        }, 300);
+
+                        // Remove event listener
+                        document.removeEventListener('keydown', handleEscKey);
+                    }
+                }
+
+                document.addEventListener('keydown', handleEscKey);
             });
 
             recentPhotosContainer.appendChild(photoEl);

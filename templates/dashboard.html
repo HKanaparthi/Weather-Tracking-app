@@ -23,11 +23,7 @@
             <a href="./historical-comparison" class="transparent-button">Historical</a>
             <a href="./travel-weather" class="transparent-button">Travel Plan</a>
             <a href="./activities" class="transparent-button">Activities</a>
-            <a href="./alerts" class="transparent-button premium-feature">Alerts</a>
 
-            <button id="darkModeToggle" class="transparent-button">
-                <i class="fas fa-moon"></i>
-            </button>
 
             <!-- Profile dropdown -->
             <!-- Profile dropdown -->
@@ -73,7 +69,7 @@
     <!-- Weather Map Section -->
     <div class="weather-map-container premium-feature-section">
         <div class="map-header">
-            <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
+            <h3>Weather Map </h3>
             <div class="map-controls">
                 <div class="map-layer-select">
                     <label for="mapLayer">Layer:</label>
@@ -299,7 +295,7 @@
         <div class="weather-card daily-card">
             <div class="daily-forecast-heading">
                 <span id="forecastDaysDisplay">7</span>-Day Forecast
-                <span class="premium-badge-small premium-feature"><i class="fas fa-crown"></i></span>
+
             </div>
             <div class="daily-forecast" id="dailyForecast">
                 <!-- Daily forecast will be populated by JS -->
@@ -309,7 +305,7 @@
 
     <!-- Weather Alerts Section (Premium Feature) -->
     <div class="weather-alerts-section premium-feature-section">
-        <h3>Weather Alerts <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
+        <h3>Weather Alerts </h3>
         <div class="alerts-container" id="alertsContainer">
             <div class="alert-item info">
                 <div class="alert-header">
@@ -364,50 +360,7 @@
         </div>
     </div>
 
-    <!-- Weather Metrics Grid (New) -->
-    <div class="weather-metrics-grid premium-feature-section">
-        <div class="metrics-header">
-            <h3>Weather Details</h3>
-        </div>
-        <div class="metrics-container">
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-sun"></i></div>
-                <div class="metric-name">UV</div>
-                <div class="metric-value" id="metricUv">1</div>
-                <div class="metric-description">Very weak</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-temperature-low"></i></div>
-                <div class="metric-name">Feels like</div>
-                <div class="metric-value" id="metricFeelsLike">12°</div>
-                <div class="metric-description">Similar to actual</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-tint"></i></div>
-                <div class="metric-name">Humidity</div>
-                <div class="metric-value" id="metricHumidity">46%</div>
-                <div class="metric-description">Comfortable</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-wind"></i></div>
-                <div class="metric-name">Wind</div>
-                <div class="metric-value" id="metricWind">9 mph</div>
-                <div class="metric-description">N direction</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-compress-arrows-alt"></i></div>
-                <div class="metric-name">Pressure</div>
-                <div class="metric-value" id="metricPressure">1015</div>
-                <div class="metric-description">hPa</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-eye"></i></div>
-                <div class="metric-name">Visibility</div>
-                <div class="metric-value" id="metricVisibility">10</div>
-                <div class="metric-description">miles</div>
-            </div>
-        </div>
-    </div>
+
 </div>
 
 <!-- Load Leaflet JS -->
@@ -415,6 +368,11 @@
 
 <!-- Load main dashboard JS with the fix -->
 <script src="static/js/dashboard.js"></script>
+<a href="/chats" class="chat-bubble">
+    <i class="fas fa-comments"></i>
+</a>
 
 </body>
+
+
 </html>

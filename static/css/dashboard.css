@@ -150,6 +150,35 @@ body::before {
     box-shadow: 0 0 10px rgba(78, 84, 200, 0.5);
 }
 /* Weather Map Section */
+
+.chat-bubble {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #1E88E5;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    text-decoration: none;
+}
+
+.chat-bubble:hover {
+    background-color: #1976D2;
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.chat-bubble i {
+    color: white;
+    font-size: 24px;
+}
+
 .weather-map-container {
     max-width: 1200px;
     margin: 30px auto;

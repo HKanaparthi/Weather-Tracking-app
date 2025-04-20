@@ -8,6 +8,198 @@
   <link rel="stylesheet" href="../static/css/chat.css">
   <!-- Add font-awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Poll styling */
+    .poll-container {
+      background-color: #f0f5fd;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .poll-question {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .poll-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .poll-option {
+      position: relative;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .poll-option:hover {
+      background-color: #e9f0fd;
+    }
+
+    .poll-option.selected {
+      background-color: #d1e3ff;
+      border-color: #4a90e2;
+    }
+
+    .poll-option-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: rgba(74, 144, 226, 0.2);
+      border-radius: 4px;
+      z-index: 0;
+    }
+
+    .poll-option-text {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .poll-option-percentage {
+      font-weight: bold;
+    }
+
+    .poll-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .poll-voters {
+      margin-right: 10px;
+    }
+
+    /* Poll creator modal */
+    .poll-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .poll-modal-content {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .poll-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .poll-modal-header h3 {
+      margin: 0;
+    }
+
+    .poll-modal-close {
+      cursor: pointer;
+      font-size: 1.5em;
+    }
+
+    .poll-creator-form label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .poll-creator-form input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+
+    .poll-options-container {
+      margin-bottom: 15px;
+    }
+
+    .poll-option-input {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .poll-option-input input {
+      flex-grow: 1;
+    }
+
+    .poll-option-input button {
+      margin-left: 8px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .poll-option-add {
+      background: none;
+      border: none;
+      color: #4a90e2;
+      cursor: pointer;
+      padding: 5px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .poll-option-add i {
+      margin-right: 5px;
+    }
+
+    .poll-creator-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .poll-creator-actions button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid #ddd;
+      margin-right: 10px;
+    }
+
+    .btn-create-poll {
+      background-color: #4a90e2;
+      border: none;
+      color: white;
+    }
+
+    /* Additional UI elements */
+    .chat-input-actions {
+      display: flex;
+      gap: 5px;
+    }
+  </style>
 </head>
 <body>
 <div class="container">
@@ -58,10 +250,15 @@
 
       <div class="chat-input">
         <form id="message-form">
-          <input type="text" id="message-text" placeholder="Type a message..." required>
-          <button type="button" id="attach-image" class="btn-icon">
-            <i class="fas fa-image"></i>
-          </button>
+          <input type="text" id="message-text" placeholder="Type a message...">
+          <div class="chat-input-actions">
+            <button type="button" id="attach-image" class="btn-icon" title="Attach Image">
+              <i class="fas fa-image"></i>
+            </button>
+            <button type="button" id="create-poll" class="btn-icon" title="Create Poll">
+              <i class="fas fa-poll"></i>
+            </button>
+          </div>
           <input type="file" id="image-upload" accept="image/*" style="display: none;">
           <button type="submit" class="btn-send">
             <i class="fas fa-paper-plane"></i>
@@ -77,12 +274,7 @@
     </section>
 
     <aside class="sidebar">
-      <div class="weather-summary">
-        <h3>Today's Weather</h3>
-        <div id="weather-summary-content">
-          <!-- Weather summary will be loaded here -->
-        </div>
-      </div>
+
 
       <div class="recent-photos">
         <h3>Recent Photos</h3>
@@ -113,9 +305,70 @@
       <div class="message-image" style="display: none;">
         <img src="" alt="Shared Image">
       </div>
+      <div class="message-poll" style="display: none;">
+        <!-- Poll content will be added dynamically -->
+      </div>
     </div>
   </div>
 </template>
+
+<!-- Poll template (hidden) -->
+<template id="poll-template">
+  <div class="poll-container" data-poll-id="">
+    <div class="poll-question"></div>
+    <div class="poll-options">
+      <!-- Poll options will be added dynamically -->
+    </div>
+    <div class="poll-footer">
+      <span class="poll-voters">0 votes</span>
+      <span class="poll-created-by">Created by <span class="poll-author"></span></span>
+    </div>
+  </div>
+</template>
+
+<!-- Poll option template (hidden) -->
+<template id="poll-option-template">
+  <div class="poll-option" data-option-id="">
+    <div class="poll-option-progress"></div>
+    <div class="poll-option-text">
+      <span class="poll-option-label"></span>
+      <span class="poll-option-percentage">0%</span>
+    </div>
+  </div>
+</template>
+
+<!-- Poll creation modal -->
+<div id="poll-modal" class="poll-modal">
+  <div class="poll-modal-content">
+    <div class="poll-modal-header">
+      <h3>Create a Poll</h3>
+      <span class="poll-modal-close">&times;</span>
+    </div>
+    <form id="poll-creator-form" class="poll-creator-form">
+      <label for="poll-question">Question</label>
+      <input type="text" id="poll-question" placeholder="Ask a question..." required>
+
+      <label>Options</label>
+      <div id="poll-options-container" class="poll-options-container">
+        <div class="poll-option-input">
+          <input type="text" class="poll-option-text" placeholder="Option 1" required>
+        </div>
+        <div class="poll-option-input">
+          <input type="text" class="poll-option-text" placeholder="Option 2" required>
+        </div>
+      </div>
+
+      <button type="button" id="poll-option-add" class="poll-option-add">
+        <i class="fas fa-plus"></i> Add Option
+      </button>
+
+      <div class="poll-creator-actions">
+        <button type="button" id="poll-cancel" class="btn-cancel">Cancel</button>
+        <button type="submit" class="btn-create-poll">Create Poll</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
   // Store the city name for use in JS

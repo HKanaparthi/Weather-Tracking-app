@@ -31,6 +31,7 @@ func (h *ChatHandler) RegisterRoutes(router *gin.Engine) {
 		chatGroup.GET("/room", h.getChatRoom)
 		chatGroup.POST("/message", h.postMessage)
 		chatGroup.POST("/activity", h.updateActivity)
+		chatGroup.GET("/popular", h.getPopularChatRooms) // New endpoint for popular chat rooms
 	}
 
 	// Page routes with authentication middleware
@@ -142,6 +143,51 @@ func (h *ChatHandler) updateActivity(c *gin.Context) {
 
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+// getPopularChatRooms handles GET requests to retrieve popular chat rooms
+func (h *ChatHandler) getPopularChatRooms(c *gin.Context) {
+	// Get popular chat rooms (rooms with most messages or active users)
+	rows, err := h.chatService.GetDB().Query(
+		`SELECT city_name, COUNT(*) as message_count 
+		FROM chat_messages 
+		WHERE created_at > NOW() - INTERVAL 24 HOUR 
+		GROUP BY city_name 
+		ORDER BY message_count DESC 
+		LIMIT 5`,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get popular chat rooms: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	type PopularCity struct {
+		Name         string `json:"name"`
+		MessageCount int    `json:"message_count"`
+		ActiveUsers  int    `json:"active_users"`
+	}
+
+	var cities []PopularCity
+	for rows.Next() {
+		var city PopularCity
+		if err := rows.Scan(&city.Name, &city.MessageCount); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process popular chat rooms: " + err.Error()})
+			return
+		}
+
+		// Get active users count
+		h.chatService.GetDB().QueryRow(
+			"SELECT COUNT(*) FROM chat_active_users WHERE city_name = ? AND last_active > NOW() - INTERVAL 10 MINUTE",
+			city.Name,
+		).Scan(&city.ActiveUsers)
+
+		cities = append(cities, city)
+	}
+
+	// Return the popular chat rooms
+	c.JSON(http.StatusOK, gin.H{"cities": cities})
 }
 
 // handleChatPage serves the chat page for a specific city
