@@ -314,13 +314,13 @@ function updateSunPositionIndicator() {
     const sunsetTime = document.getElementById('sunsetLargeTime');
 
     if (sunriseTime) sunriseTime.textContent = '6:53 AM';
-    if (sunsetTime) sunsetTime.textContent = '7:53 PM';
+    if (sunsetTime) sunsetTime.textContent = '8:00 PM';
 
     // Calculate position (simplified for now)
     const sunriseHour = 6;
     const sunriseMinute = 53;
-    const sunsetHour = 19;
-    const sunsetMinute = 53;
+    const sunsetHour = 20;
+    const sunsetMinute = 00;
 
     const dayStart = sunriseHour + (sunriseMinute / 60);
     const dayEnd = sunsetHour + (sunsetMinute / 60);
