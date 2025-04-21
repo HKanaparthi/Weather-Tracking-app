@@ -490,7 +490,7 @@
   <div class="header-logo">
     <a href="/">
       <img src="/static/Mainlogo.png" alt="GoWeather Logo" class="logo-img">
-      GoWeather
+
     </a>
   </div>
   <div class="auth-buttons">
@@ -577,7 +577,6 @@
         {{else}}
         --
         {{end}}
-        <span class="celsius">°C</span>
       </div>
       <div class="weather-condition">
         {{if .Current.Condition}}
@@ -620,7 +619,7 @@
             {{.Current.Main.Humidity}}
             {{else}}
             --
-            {{end}}%
+            {{end}}
           </div>
         </div>
         <div class="detail-item">
@@ -650,7 +649,7 @@
             {{.Current.Main.Pressure}}
             {{else}}
             --
-            {{end}} hPa
+            {{end}}
           </div>
         </div>
         <div class="detail-item">
@@ -700,42 +699,7 @@
       </div>
     </div>
 
-    <!-- 7-Day Forecast Card -->
-    <div class="weather-card forecast-card">
-      <div class="forecast-title">
-        <h3 class="card-title">7-Day Forecast</h3>
-      </div>
-      <div class="forecast-days">
-        {{if .Forecast}}
-        {{range .Forecast}}
-        <div class="forecast-day">
-          <div class="day-info">
-            <div class="day-name">{{.Day}}</div>
-            <div class="day-date">{{.Date}}</div>
-          </div>
-          <div class="day-condition">
-            <div class="day-icon">
-              {{if .Icon}}
-              <img src="{{.Icon}}" alt="{{.Description}}" style="width: 32px; height: 32px;">
-              {{else}}
-              <i class="fas fa-cloud"></i>
-              {{end}}
-            </div>
-            <div class="day-desc">{{.Description}}</div>
-          </div>
-          <div class="day-temps">
-            <div class="day-high">{{printf "%.0f°C" .MaxTemp}}</div>
-            <div class="day-low">{{printf "%.0f°C" .MinTemp}}</div>
-          </div>
-        </div>
-        {{end}}
-        {{else}}
-        <div style="text-align: center; padding: 20px;">
-          <p>No forecast data available for this location</p>
-        </div>
-        {{end}}
-      </div>
-    </div>
+
   </div>
   {{end}}
 </div>

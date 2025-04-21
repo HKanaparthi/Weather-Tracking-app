@@ -31,17 +31,34 @@
 }
 
 body {
-    font-family: var(--font-main);
-    background: var(--background-main);
-    color: var(--text-dark);
-    line-height: 1.6;
-    overflow-x: hidden;
-    background-image: linear-gradient(to bottom, #0a0a14, #121212);
+    background-image: url('../mainbg.jpg');
+    background-size: cover;
+    background-position: center;
     background-attachment: fixed;
+    transition: background-image 1s ease-in-out;
     min-height: 100vh;
     position: relative;
+    margin: 0;
+    padding: 0;
 }
 
+body.dark-theme {
+    background-color: #121212;
+}
+
+body.dark-theme::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: -1;
+    backdrop-filter: blur(2px);
+}
+
+/* Enhanced background overlay for better readability */
 body::before {
     content: '';
     position: fixed;
@@ -49,10 +66,11 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="250" height="250" viewBox="0 0 100 100"><path fill="%23ffffff" fill-opacity="0.03" d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"></path></svg>');
-    opacity: 0.3;
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: -1;
+    backdrop-filter: blur(2px);
 }
+
 /* Navigation Buttons - Add this to your weatherImpact.css file */
 
 /* Top Navigation Container */
@@ -65,88 +83,194 @@ body::before {
 }
 
 /* Back to Home Button */
-.back-home {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-dark);
-    border-radius: var(--border-radius-md);
-    padding: 8px 15px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color var(--transition-speed);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--header-bg);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-logo {
     display: flex;
     align-items: center;
 }
 
-.back-home i {
-    margin-right: 6px;
-}
-
-.back-home:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
-/* Main Navigation Buttons */
-.main-nav-buttons {
+.logo {
     display: flex;
-    gap: 8px;
-}
-
-.nav-button {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-dark);
-    border-radius: var(--border-radius-md);
-    padding: 8px 15px;
+    align-items: center;
     text-decoration: none;
-    font-weight: 500;
-    transition: all var(--transition-speed);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.logo-img {
+    height: 70px;
+    margin-right: 15px;
+}
+
+.logo span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.welcome-text {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.welcome-text strong {
+    font-weight: bold;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Container styling */
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    position: relative;
+}
+
+/* Transparent buttons styling */
+.transparent-button {
+    padding: 8px 16px;
+    background-color: rgba(50, 50, 50, 0.5);
+    border-radius: 20px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    border: 1px solid rgba(100, 100, 100, 0.3);
     backdrop-filter: blur(5px);
+    cursor: pointer;
 }
 
-.nav-button:hover {
-    background-color: rgba(255, 255, 255, 0.25);
+/* Updated hover style for transparent buttons - blue background */
+.transparent-button:hover {
+    background-color: #3498db;
+    transform: translateY(-2px);
+    border-color: #3498db;
+    color: white;
 }
 
-.nav-button.active {
-    background-color: var(--primary-color);
-    color: #050505;
+/* Profile dropdown styling */
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+    z-index: 200;
 }
 
-/* Premium Badge - Optional if you want to add a premium indicator like in the screenshot */
-.premium-badge {
-    background-color: var(--warning-color);
-    color: #050505;
-    font-size: 0.75em;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
+.profile-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4e54c8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .top-nav-buttons {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-
-    .main-nav-buttons {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav-button {
-        flex: 1;
-        text-align: center;
-        min-width: 80px;
-    }
-
-    .back-home {
-        justify-content: center;
-    }
+.profile-dropdown.active .profile-circle {
+    border-color: #4e54c8;
+    box-shadow: 0 0 10px rgba(78, 84, 200, 0.5);
 }
+
+#profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: rgba(40, 40, 40, 0.95);
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    z-index: 999;
+    overflow: hidden;
+    border: 1px solid rgba(100, 100, 100, 0.2);
+    animation: fadeIn 0.3s;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.dropdown-content a i {
+    margin-right: 10px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(70, 70, 70, 0.7);
+}
+
+/* Show dropdown class */
+.dropdown-content.show {
+    display: block !important;
+}
+
+/* Profile dropdown arrow */
+.profile-dropdown::after {
+    content: '';
+    position: absolute;
+    top: 42px;
+    right: 15px;
+    width: 10px;
+    height: 10px;
+    background-color: rgba(40, 40, 40, 0.9);
+    border-top: 1px solid rgba(100, 100, 100, 0.2);
+    border-left: 1px solid rgba(100, 100, 100, 0.2);
+    transform: rotate(45deg);
+    display: none;
+}
+
+.profile-dropdown.active::after {
+    display: block !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+
 /* Main Container */
 .container {
     max-width: 1200px;
@@ -1901,3 +2025,15 @@ header p {
             margin-bottom: 20px;
         }
     }
+
+/* Ensure the dropdown works on hover */
+.profile-dropdown:hover .dropdown-content {
+    display: block !important;
+    animation: fadeIn 0.3s;
+}
+
+/* Add the 'show' class trigger for JS click functionality */
+.dropdown-content.show {
+    display: block !important;
+    animation: fadeIn 0.3s;
+}

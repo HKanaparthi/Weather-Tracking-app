@@ -337,7 +337,9 @@ body::before {
     color: #9dc3ff;
 }
 
-/* Transparent buttons styling */
+/* Update both the transparent-button base style and hover styles */
+
+/* Base style for the buttons (around line 370) */
 .transparent-button {
     padding: 8px 16px;
     background-color: rgba(50, 50, 50, 0.5);
@@ -351,10 +353,12 @@ body::before {
     cursor: pointer;
 }
 
+/* Hover style for the buttons */
 .transparent-button:hover {
-    background-color: rgba(70, 70, 70, 0.7);
+    background-color: #3498db; /* Solid blue background */
     transform: translateY(-2px);
-    border-color: var(--highlight-color);
+    border-color: #3498db; /* Same blue for border to create full blue effect */
+    color: white;
 }
 
 /* Modified profile dropdown styling */
@@ -1813,3 +1817,6 @@ body::before {
         width: 100%;
     }
 }
+/* Find the existing .transparent-button:hover style (around line 400) and replace it with: */
+
+

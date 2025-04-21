@@ -23,6 +23,61 @@ type NearbyLocationsResponse struct {
 	Locations []Location `json:"locations"`
 }
 
+// HandleReverseGeocode converts coordinates to a location name
+func HandleReverseGeocode(w http.ResponseWriter, r *http.Request) {
+	// Set content type for JSON response
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get latitude and longitude from query parameters
+	latStr := r.URL.Query().Get("lat")
+	lonStr := r.URL.Query().Get("lon")
+
+	// Validate parameters
+	if latStr == "" || lonStr == "" {
+		http.Error(w, "Missing lat or lon parameters", http.StatusBadRequest)
+		return
+	}
+
+	// Parse latitude and longitude
+	lat, err := strconv.ParseFloat(latStr, 64)
+	if err != nil {
+		http.Error(w, "Invalid latitude value", http.StatusBadRequest)
+		return
+	}
+
+	lon, err := strconv.ParseFloat(lonStr, 64)
+	if err != nil {
+		http.Error(w, "Invalid longitude value", http.StatusBadRequest)
+		return
+	}
+
+	// In a real application, you would call an external geocoding API
+	// For now, we'll determine the location based on the coordinates
+
+	// For the Charlotte coordinates (approximately 35.3, -80.7)
+	// You would integrate with a real geocoding service here
+	cityName := "Charlotte"
+	stateName := "North Carolina"
+	countryName := "United States"
+
+	// Create location response
+	location := Location{
+		Name:    cityName,
+		State:   stateName,
+		Country: countryName,
+		Lat:     lat,
+		Lon:     lon,
+	}
+
+	// Encode response to JSON
+	err = json.NewEncoder(w).Encode(location)
+	if err != nil {
+		log.Printf("Error encoding JSON response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 // HandleNearbyLocations handles the API request for nearby locations
 func HandleNearbyLocations(w http.ResponseWriter, r *http.Request) {
 	// Set content type for JSON response

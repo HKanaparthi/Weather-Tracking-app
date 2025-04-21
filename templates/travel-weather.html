@@ -12,21 +12,35 @@
 
 </head>
 <body>
-<header>
-    <div class="logo">
-        <img src="/static/Mainlogo.png" alt="Weather Tracking App Logo">
+<!-- Header -->
+<div class="header">
+    <div class="header-logo">
+        <a href="/" class="logo">
+            <img src="/static/Mainlogo.png" alt="GoWeather Logo" class="logo-img">
+        </a>
     </div>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/compare">Compare</a></li>
-            <li><a href="/weather-impact">Weather Impact</a></li>
-            <li><a href="/travel-weather" class="active">Travel Weather</a></li>
-            <li><a href="/profile">Profile</a></li>
-        </ul>
-    </nav>
-</header>
+    <div class="header-right">
+        <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
+        <div class="nav-buttons">
+            <a href="./" class="transparent-button">Home</a>
+            <a href="./compare" class="transparent-button">Compare</a>
+            <a href="./historical-comparison" class="transparent-button">Historical</a>
+            <a href="./travel-weather" class="transparent-button travel-button">Travel Plan</a>
+            <a href="./activities" class="transparent-button">Activities</a>
+
+            <!-- Profile dropdown -->
+            <div class="profile-dropdown">
+                <div class="profile-circle" id="profileCircle">
+                    <img id="profile-photo" src="{{ if .User.ProfilePhoto }}/static/profile_photos/{{ .User.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo" height="40px">
+                </div>
+                <div class="dropdown-content" id="dropdownContent">
+                    <a href="./profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="./logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <main>
     <section class="hero">

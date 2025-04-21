@@ -3909,7 +3909,7 @@ func main() {
 	// Add a route that uses the standard HTTP handler for travel weather
 	router.GET("/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherHandler)))
 	router.GET("/api/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherAPIHandler)))
-
+	http.HandleFunc("/api/reverse-geocode", handlers.HandleReverseGeocode)
 	router.POST("/signup", authHandler.PostSignup)
 	router.GET("/logout", authHandler.Logout)
 

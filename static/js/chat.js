@@ -462,24 +462,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Update weather summary
-            weatherSummary.innerHTML = `
-                <div class="weather-detail">
-                    <i class="fas fa-temperature-high"></i>
-                    <span>High: ${Math.round(highTemp)}°</span>
-                </div>
-                <div class="weather-detail">
-                    <i class="fas fa-temperature-low"></i>
-                    <span>Low: ${Math.round(lowTemp)}°</span>
-                </div>
-                <div class="weather-detail">
-                    <i class="fas fa-wind"></i>
-                    <span>Wind: ${Math.round(windSpeed)} mph</span>
-                </div>
-                <div class="weather-detail">
-                    <i class="fas fa-tint"></i>
-                    <span>Humidity: ${humidity}%</span>
-                </div>
-            `;
+            if (weatherSummary) {
+                weatherSummary.innerHTML = `
+                    <div class="weather-detail">
+                        <i class="fas fa-temperature-high"></i>
+                        <span>High: ${Math.round(highTemp)}°</span>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-temperature-low"></i>
+                        <span>Low: ${Math.round(lowTemp)}°</span>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-wind"></i>
+                        <span>Wind: ${Math.round(windSpeed)} mph</span>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidity: ${humidity}%</span>
+                    </div>
+                `;
+            }
         } else {
             // If all API calls failed, show error message
             console.error('All weather API endpoints failed');
@@ -487,16 +489,18 @@ document.addEventListener('DOMContentLoaded', function() {
             currentTemp.textContent = '--°';
             currentCondition.textContent = '--';
 
-            weatherSummary.innerHTML = `
-                <div class="weather-detail">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Weather data unavailable</span>
-                </div>
-                <div class="weather-detail">
-                    <i class="fas fa-sync"></i>
-                    <span>Try refreshing the page</span>
-                </div>
-            `;
+            if (weatherSummary) {
+                weatherSummary.innerHTML = `
+                    <div class="weather-detail">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Weather data unavailable</span>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-sync"></i>
+                        <span>Try refreshing the page</span>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -631,6 +635,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vote on a poll
     async function votePoll(pollId, optionId, messageId) {
         // Check if poll exists
+        if (!window.polls) {
+            window.polls = {};
+        }
+
         const pollData = window.polls[pollId];
         if (!pollData) {
             console.error('Poll not found:', pollId);
@@ -643,15 +651,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Update poll data
+        // Update poll data locally first for immediate feedback
         pollData.voters.push(userID);
         pollData.options.forEach(option => {
             if (option.id === optionId) {
                 option.votes++;
+                // Track who voted for this option if not already tracking
+                if (!option.voters) option.voters = [];
+                option.voters.push(userID);
             }
         });
 
-        // Update UI
+        // Update UI with local data
         updatePollUI(pollId);
 
         // Send vote to server
@@ -674,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!response.ok) throw new Error('Failed to send vote');
 
-            // Force refresh chat
+            // Force refresh chat to get updated poll data from server
             loadChatRoom();
         } catch (error) {
             console.error('Error sending vote:', error);
@@ -687,50 +698,80 @@ document.addEventListener('DOMContentLoaded', function() {
 
             pollData.options.forEach(option => {
                 if (option.id === optionId) {
-                    option.votes--;
+                    option.votes = Math.max(0, option.votes - 1);
+                    // Remove user from voters list
+                    if (option.voters) {
+                        const voterIndex = option.voters.indexOf(userID);
+                        if (voterIndex > -1) {
+                            option.voters.splice(voterIndex, 1);
+                        }
+                    }
                 }
             });
 
             updatePollUI(pollId);
-
             alert('Failed to send vote. Please try again.');
         }
     }
 
     // Update poll UI after voting
     function updatePollUI(pollId) {
-        // Find poll in DOM
+        // Find all poll elements with this ID
         const pollElements = document.querySelectorAll(`.poll-container[data-poll-id="${pollId}"]`);
+
+        console.log(`Updating UI for poll ${pollId}, found ${pollElements.length} elements`);
+
+        if (!window.polls || !window.polls[pollId]) {
+            console.error(`Poll data not found for poll ID: ${pollId}`);
+            return;
+        }
 
         pollElements.forEach(pollElement => {
             const pollData = window.polls[pollId];
-            if (!pollData) return;
 
             // Update voters count
-            pollElement.querySelector('.poll-voters').textContent =
-                `${pollData.voters.length} vote${pollData.voters.length !== 1 ? 's' : ''}`;
+            const votersEl = pollElement.querySelector('.poll-voters');
+            if (votersEl) {
+                votersEl.textContent = `${pollData.voters.length} vote${pollData.voters.length !== 1 ? 's' : ''}`;
+            }
 
             // Calculate total votes
             const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
 
-            // Update options
+            // Update each option
             pollData.options.forEach(option => {
                 const optionElement = pollElement.querySelector(`.poll-option[data-option-id="${option.id}"]`);
-                if (!optionElement) return;
+                if (!optionElement) {
+                    console.warn(`Option element not found for option ID: ${option.id}`);
+                    return;
+                }
 
                 // Calculate percentage
                 const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
 
                 // Update percentage text
-                optionElement.querySelector('.poll-option-percentage').textContent = `${percentage}%`;
+                const percentageEl = optionElement.querySelector('.poll-option-percentage');
+                if (percentageEl) {
+                    percentageEl.textContent = `${percentage}%`;
+                }
 
-                // Update progress bar width
-                optionElement.querySelector('.poll-option-progress').style.width = `${percentage}%`;
+                // Update progress bar
+                const progressEl = optionElement.querySelector('.poll-option-progress');
+                if (progressEl) {
+                    progressEl.style.width = `${percentage}%`;
+                }
 
-                // Disable clicking on all options
-                optionElement.style.cursor = 'default';
-                const newOption = optionElement.cloneNode(true);
-                optionElement.parentNode.replaceChild(newOption, optionElement);
+                // Show this option as selected if the current user voted for it
+                if (pollData.voters.includes(userID)) {
+                    // Remove click handlers from all options
+                    optionElement.style.cursor = 'default';
+
+                    // Check if this was the user's choice
+                    const voteData = pollData.options.find(o => o.id === option.id && o.voters && o.voters.includes(userID));
+                    if (voteData) {
+                        optionElement.classList.add('selected');
+                    }
+                }
             });
         });
     }
@@ -807,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Create message element
+    // Create message element - improved version
     function createMessageElement(msg) {
         // Make sure the message template exists
         if (!messageTemplate) {
@@ -842,27 +883,33 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 console.log("Rendering poll in message:", msg.id);
 
-                const pollData = JSON.parse(msg.poll_data);
-                console.log("Parsed poll data:", pollData);
-
-                // Create poll element
                 const pollContainer = messageEl.querySelector('.message-poll');
                 if (!pollContainer) {
                     console.error("Poll container not found in message element");
                     return messageEl;
                 }
 
+                // Make sure poll container is visible
                 pollContainer.style.display = 'block';
 
-                // Make sure the poll template exists
+                // Parse poll data
+                let pollData;
+                try {
+                    pollData = JSON.parse(msg.poll_data);
+                    console.log("Parsed poll data:", pollData);
+                } catch (e) {
+                    console.error("Error parsing poll data:", e);
+                    return messageEl;
+                }
+
+                // Get the poll template
                 if (!pollTemplate) {
                     console.error("Poll template not found!");
                     return messageEl;
                 }
 
-                // Use the poll template
+                // Clone the template
                 const pollElement = document.importNode(pollTemplate.content, true).firstElementChild;
-
                 if (!pollElement) {
                     console.error("Failed to clone poll template!");
                     return messageEl;
@@ -871,27 +918,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Set poll data
                 pollElement.dataset.pollId = pollData.id;
 
+                // Set poll question
                 const questionEl = pollElement.querySelector('.poll-question');
                 if (questionEl) {
                     questionEl.textContent = pollData.question;
                 }
 
+                // Update voters count
                 const votersEl = pollElement.querySelector('.poll-voters');
                 if (votersEl) {
                     votersEl.textContent = `${pollData.voters.length} vote${pollData.voters.length !== 1 ? 's' : ''}`;
                 }
 
+                // Set author name
                 const authorEl = pollElement.querySelector('.poll-author');
-                if (authorEl) {
+                if (authorEl && pollData.createdBy) {
                     authorEl.textContent = pollData.createdBy.username;
                 }
 
-                // Create options
+                // Clear existing options (if any)
                 const pollOptionsContainer = pollElement.querySelector('.poll-options');
                 if (!pollOptionsContainer) {
                     console.error("Poll options container not found");
                     return messageEl;
                 }
+
+                pollOptionsContainer.innerHTML = '';
 
                 // Calculate total votes
                 const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
@@ -900,64 +952,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 const hasVoted = pollData.voters.includes(userID);
 
                 // Add options
-                pollData.options.forEach(option => {
-                    // Make sure the poll option template exists
-                    if (!pollOptionTemplate) {
-                        console.error("Poll option template not found!");
-                        return;
-                    }
+                if (Array.isArray(pollData.options)) {
+                    pollData.options.forEach(option => {
+                        // Check if option is valid
+                        if (!option || typeof option !== 'object') {
+                            console.error("Invalid option:", option);
+                            return;
+                        }
 
-                    // Use the poll option template
-                    const optionElement = document.importNode(pollOptionTemplate.content, true).firstElementChild;
+                        // Make sure the poll option template exists
+                        if (!pollOptionTemplate) {
+                            console.error("Poll option template not found!");
+                            return;
+                        }
 
-                    if (!optionElement) {
-                        console.error("Failed to clone poll option template!");
-                        return;
-                    }
+                        // Clone the option template
+                        const optionElement = document.importNode(pollOptionTemplate.content, true).firstElementChild;
+                        if (!optionElement) {
+                            console.error("Failed to clone poll option template!");
+                            return;
+                        }
 
-                    // Set option data
-                    optionElement.dataset.optionId = option.id;
+                        // Set option data
+                        optionElement.dataset.optionId = option.id;
 
-                    // Calculate percentage
-                    const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+                        // Calculate percentage
+                        const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
 
-                    // Set option text
-                    const labelEl = optionElement.querySelector('.poll-option-label');
-                    if (labelEl) {
-                        labelEl.textContent = option.text;
-                    }
+                        // Set option text
+                        const labelEl = optionElement.querySelector('.poll-option-label');
+                        if (labelEl) {
+                            labelEl.textContent = option.text;
+                        }
 
-                    const percentageEl = optionElement.querySelector('.poll-option-percentage');
-                    if (percentageEl) {
-                        percentageEl.textContent = `${percentage}%`;
-                    }
+                        const percentageEl = optionElement.querySelector('.poll-option-percentage');
+                        if (percentageEl) {
+                            percentageEl.textContent = `${percentage}%`;
+                        }
 
-                    const progressEl = optionElement.querySelector('.poll-option-progress');
-                    if (progressEl) {
-                        progressEl.style.width = `${percentage}%`;
-                    }
+                        const progressEl = optionElement.querySelector('.poll-option-progress');
+                        if (progressEl) {
+                            progressEl.style.width = `${percentage}%`;
+                        }
 
-                    // If user has already voted
-                    if (hasVoted) {
-                        optionElement.style.cursor = 'default';
-                    } else {
-                        // Add click event
-                        optionElement.addEventListener('click', function() {
-                            votePoll(pollData.id, option.id, msg.id);
-                        });
-                    }
+                        // Handle user voted state
+                        if (hasVoted) {
+                            optionElement.style.cursor = 'default';
+                        } else {
+                            // Add click event
+                            optionElement.addEventListener('click', function() {
+                                votePoll(pollData.id, option.id, msg.id);
+                            });
+                        }
 
-                    // Add to options container
-                    pollOptionsContainer.appendChild(optionElement);
-                });
+                        // Add option to container
+                        pollOptionsContainer.appendChild(optionElement);
+                    });
+                } else {
+                    console.error("Poll options is not an array:", pollData.options);
+                }
 
                 // Add poll to message
+                pollContainer.innerHTML = '';
                 pollContainer.appendChild(pollElement);
 
                 // Store poll in memory if not already there
-                if (!window.polls[pollData.id]) {
-                    window.polls[pollData.id] = pollData;
+                if (!window.polls) {
+                    window.polls = {};
                 }
+                window.polls[pollData.id] = pollData;
             } catch (error) {
                 console.error('Error rendering poll:', error);
             }
@@ -973,6 +1036,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update recent photos
     function updateRecentPhotos(messages) {
+        // Skip if the container doesn't exist
+        if (!recentPhotosContainer) return;
+
         // Get messages with images, sorted by most recent
         const messagesWithImages = messages
             .filter(msg => msg.image_url)

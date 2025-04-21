@@ -24,22 +24,33 @@ const apiKey = "0c2e2084bdd01a671b1b450215191f89" // Your OpenWeather API key
 type WeatherData struct {
 	Name string `json:"name"`
 	Main struct {
-		Temp     float64 `json:"temp"`
-		Humidity int     `json:"humidity"`
-		Pressure int     `json:"pressure"`
+		Temp      float64 `json:"temp"`
+		FeelsLike float64 `json:"feels_like"`
+		Humidity  int     `json:"humidity"`
+		Pressure  int     `json:"pressure"`
 	} `json:"main"`
 	Weather []struct {
 		Description string `json:"description"`
 	} `json:"weather"`
+	Wind struct {
+		Speed float64 `json:"speed"`
+	} `json:"wind"`
+	Visibility int `json:"visibility"`
+	Sys        struct {
+		Sunrise int64 `json:"sunrise"`
+		Sunset  int64 `json:"sunset"`
+	} `json:"sys"`
 	Coord struct {
 		Lat float64 `json:"lat"`
 		Lon float64 `json:"lon"`
 	} `json:"coord"`
+	Timezone int `json:"timezone"` // Add timezone offset in seconds from UTC
 }
 
 // UVData struct for UV index response
 type UVData struct {
-	Current struct {
+	TimezoneOffset int `json:"timezone_offset"` // Seconds from UTC
+	Current        struct {
 		UVI float64 `json:"uvi"`
 	} `json:"current"`
 	Daily []struct {
@@ -67,12 +78,17 @@ type DailyForecast struct {
 // CurrentWeather struct for current weather data
 type CurrentWeather struct {
 	Temperature string  `json:"temperature"`
+	FeelsLike   float64 `json:"feelsLike"` // Add this field
 	Humidity    string  `json:"humidity"`
 	Pressure    string  `json:"pressure"`
-	UVIndex     float64 `json:"uvIndex"` // Added UV Index
+	WindSpeed   float64 `json:"windSpeed"`  // Add this field
+	Visibility  int     `json:"visibility"` // Add this field
+	Sunrise     string  `json:"sunrise"`    // Add this field
+	Sunset      string  `json:"sunset"`     // Add this field
+	UVIndex     float64 `json:"uvIndex"`
 	Condition   string  `json:"condition"`
-	UVCategory  string  `json:"-"` // UV Index category
-	UVColor     string  `json:"-"` // Color for UV Index display
+	UVCategory  string  `json:"-"`
+	UVColor     string  `json:"-"`
 }
 
 // CityWeather struct for holding weather data for a single city
@@ -118,7 +134,8 @@ type ForecastData struct {
 		DtTxt string `json:"dt_txt"`
 	} `json:"list"`
 	City struct {
-		Name string `json:"name"`
+		Name     string `json:"name"`
+		Timezone int    `json:"timezone"` // Add timezone offset
 	} `json:"city"`
 }
 
@@ -248,7 +265,9 @@ func getUVData(lat, lon float64) (*UVData, error) {
 
 		// Return a default UV object with estimated values if the API call fails
 		// This is a fallback to ensure the app works even if the One Call API is not available
-		defaultUV := &UVData{}
+		defaultUV := &UVData{
+			TimezoneOffset: 0, // Default to UTC
+		}
 		defaultUV.Current.UVI = 5.0 // Medium UV level as default
 
 		// Add 7 days of estimated UV data
@@ -582,13 +601,27 @@ func (h *WeatherHandler) GetWeather(c *gin.Context) {
 	// Get the background image URL based on the current weather condition
 	backgroundURL := getBackgroundImage(currentWeather.Weather[0].Description)
 
+	// Use the timezone offset from the location
+	// Create a fixed timezone location with the city's offset
+	// The API returns the offset in seconds from UTC
+	cityTimezone := time.FixedZone(city, currentWeather.Timezone)
+
+	// Format sunrise and sunset times in the city's local time
+	sunrise := time.Unix(currentWeather.Sys.Sunrise, 0).In(cityTimezone).Format("15:04")
+	sunset := time.Unix(currentWeather.Sys.Sunset, 0).In(cityTimezone).Format("15:04")
+
 	// Prepare the response
 	response = WeatherResponse{
 		City: currentWeather.Name,
 		Current: CurrentWeather{
 			Temperature: fmt.Sprintf("%.2f°C", currentWeather.Main.Temp),
+			FeelsLike:   currentWeather.Main.FeelsLike,
 			Humidity:    fmt.Sprintf("%d%%", currentWeather.Main.Humidity),
 			Pressure:    fmt.Sprintf("%d hPa", currentWeather.Main.Pressure),
+			WindSpeed:   currentWeather.Wind.Speed,
+			Visibility:  currentWeather.Visibility,
+			Sunrise:     sunrise,
+			Sunset:      sunset,
 			UVIndex:     currentUV,
 			Condition:   currentWeather.Weather[0].Description,
 			UVCategory:  getUVCategory(currentUV),
@@ -667,6 +700,13 @@ func (h *WeatherHandler) GetCompare(c *gin.Context) {
 				currentUV = uvData.Current.UVI
 			}
 
+			// Use the timezone offset from the location
+			cityTimezone := time.FixedZone(cityName, currentWeather.Timezone)
+
+			// Format sunrise and sunset times in the city's local time
+			sunrise := time.Unix(currentWeather.Sys.Sunrise, 0).In(cityTimezone).Format("15:04")
+			sunset := time.Unix(currentWeather.Sys.Sunset, 0).In(cityTimezone).Format("15:04")
+
 			// Get the background image URL based on the current weather condition
 			backgroundURL := getBackgroundImage(currentWeather.Weather[0].Description)
 
@@ -675,8 +715,13 @@ func (h *WeatherHandler) GetCompare(c *gin.Context) {
 				Name: currentWeather.Name,
 				Current: CurrentWeather{
 					Temperature: fmt.Sprintf("%.2f°C", currentWeather.Main.Temp),
+					FeelsLike:   currentWeather.Main.FeelsLike,
 					Humidity:    fmt.Sprintf("%d%%", currentWeather.Main.Humidity),
 					Pressure:    fmt.Sprintf("%d hPa", currentWeather.Main.Pressure),
+					WindSpeed:   currentWeather.Wind.Speed,
+					Visibility:  currentWeather.Visibility,
+					Sunrise:     sunrise,
+					Sunset:      sunset,
 					UVIndex:     currentUV,
 					Condition:   currentWeather.Weather[0].Description,
 					UVCategory:  getUVCategory(currentUV),
@@ -746,7 +791,6 @@ func (h *WeatherHandler) WeatherAPIHandler(c *gin.Context) {
 	addUVDataToForecasts(dailyForecasts, uvData)
 
 	// Sort forecasts by date
-	// Sort forecasts by date
 	sort.Slice(dailyForecasts, func(i, j int) bool {
 		// Parse dates using the FullDate field (YYYY-MM-DD format)
 		dateI, _ := time.Parse("2006-01-02", dailyForecasts[i].FullDate)
@@ -765,13 +809,25 @@ func (h *WeatherHandler) WeatherAPIHandler(c *gin.Context) {
 		currentUV = uvData.Current.UVI
 	}
 
+	// Use the timezone offset from the location
+	cityTimezone := time.FixedZone(city, currentWeather.Timezone)
+
+	// Format sunrise and sunset times in the city's local time
+	sunrise := time.Unix(currentWeather.Sys.Sunrise, 0).In(cityTimezone).Format("15:04")
+	sunset := time.Unix(currentWeather.Sys.Sunset, 0).In(cityTimezone).Format("15:04")
+
 	// Prepare the response
 	response := gin.H{
 		"city": currentWeather.Name,
 		"current": gin.H{
 			"temperature": fmt.Sprintf("%.2f°C", currentWeather.Main.Temp),
+			"feelsLike":   currentWeather.Main.FeelsLike,
 			"humidity":    fmt.Sprintf("%d%%", currentWeather.Main.Humidity),
 			"pressure":    fmt.Sprintf("%d hPa", currentWeather.Main.Pressure),
+			"windSpeed":   currentWeather.Wind.Speed,
+			"visibility":  currentWeather.Visibility,
+			"sunrise":     sunrise,
+			"sunset":      sunset,
 			"uvIndex":     currentUV,
 			"condition":   currentWeather.Weather[0].Description,
 		},
@@ -831,12 +887,24 @@ func (h *WeatherHandler) CompareAPIHandler(c *gin.Context) {
 				currentUV = uvData.Current.UVI
 			}
 
+			// Use the timezone offset from the location
+			cityTimezone := time.FixedZone(cityName, currentWeather.Timezone)
+
+			// Format sunrise and sunset times in the city's local time
+			sunrise := time.Unix(currentWeather.Sys.Sunrise, 0).In(cityTimezone).Format("15:04")
+			sunset := time.Unix(currentWeather.Sys.Sunset, 0).In(cityTimezone).Format("15:04")
+
 			// Set current weather data
 			cityData.Name = currentWeather.Name // Use the official name returned by API
 			cityData.Current = map[string]interface{}{
 				"temperature": fmt.Sprintf("%.2f°C", currentWeather.Main.Temp),
+				"feelsLike":   currentWeather.Main.FeelsLike,
 				"humidity":    fmt.Sprintf("%d%%", currentWeather.Main.Humidity),
 				"pressure":    fmt.Sprintf("%d hPa", currentWeather.Main.Pressure),
+				"windSpeed":   currentWeather.Wind.Speed,
+				"visibility":  currentWeather.Visibility,
+				"sunrise":     sunrise,
+				"sunset":      sunset,
 				"uvIndex":     currentUV,
 				"condition":   currentWeather.Weather[0].Description,
 			}

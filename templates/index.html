@@ -12,81 +12,92 @@
     /* Location popup styling */
     .location-popup {
       position: fixed;
-      top: 20px;
+      top: 10%;  /* Move to middle of screen vertically */
       left: 50%;
-      transform: translateX(-50%) translateY(-100px);
-      background-color: rgba(255, 255, 255, 0.95);
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      transform: translateX(-50%) translateY(-50%) scale(0.9);  /* Center and start slightly smaller */
+      background-color: rgba(22, 15, 47, 0.9);  /* Dark purple background to match site theme */
+      padding: 20px 25px;
+      border-radius: 12px;
+      border: 2px solid #f4a942;  /* Orange/yellow border to match site accent */
+      box-shadow: 0 5px 25px rgba(244, 169, 66, 0.3);  /* Subtle glow effect with brand color */
       z-index: 1000;
       text-align: center;
       max-width: 400px;
       width: 90%;
-      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
       opacity: 0;
     }
 
     .location-popup.show {
-      transform: translateX(-50%) translateY(0);
+      transform: translateX(-50%) translateY(-50%) scale(1);  /* Grow to full size when shown */
       opacity: 1;
     }
 
     .location-popup p {
       margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #333;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #ffffff;  /* White text for contrast */
+      font-family: 'Montserrat', sans-serif;
+      line-height: 1.4;
     }
 
     .popup-buttons {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 15px;
     }
 
     .allow-btn, .deny-btn {
-      padding: 8px 16px;
+      padding: 10px 22px;
       border: none;
-      border-radius: 5px;
+      border-radius: 25px;  /* Rounded buttons */
       cursor: pointer;
       font-weight: 600;
-      transition: background-color 0.2s, transform 0.1s;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+      font-size: 15px;
     }
 
     .allow-btn {
-      background-color: #4CAF50;
-      color: white;
+      background-color: #f4a942;  /* Yellow/orange to match site accent */
+      color: #16102d;  /* Dark color for text */
     }
 
     .allow-btn:hover {
-      background-color: #3e8e41;
+      background-color: #ffbc54;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(244, 169, 66, 0.4);
     }
 
     .deny-btn {
-      background-color: #f44336;
-      color: white;
+      background-color: rgba(255, 255, 255, 0.2);  /* Semi-transparent white */
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
     }
 
     .deny-btn:hover {
-      background-color: #d32f2f;
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
     }
 
     .allow-btn:active, .deny-btn:active {
       transform: scale(0.95);
     }
 
-    /* Status message styling */
+    /* Status message styling - updated to match theme */
     #status-message {
       margin-top: 20px;
-      padding: 10px 15px;
-      background-color: rgba(0, 0, 0, 0.7);
+      padding: 12px 20px;
+      background-color: rgba(22, 15, 47, 0.85);
       color: white;
-      border-radius: 5px;
+      border-radius: 25px;
       font-weight: bold;
       display: inline-block;
       max-width: 80%;
       text-align: center;
+      border: 1px solid rgba(244, 169, 66, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
   </style>
 </head>
@@ -215,7 +226,7 @@
     setTimeout(function() {
       document.querySelector('.location-popup').classList.add('show');
       console.log("Location popup shown");
-    }, 2000);
+    }, 5000);
   });
 </script>
 
@@ -250,50 +261,53 @@
                     console.log("Got coordinates:", latitude, longitude);
                     statusMsg.textContent = `Location found! Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 
-                    // Create a separate request to store coordinates in localStorage
+                    // Store coordinates in sessionStorage immediately
+                    sessionStorage.setItem('weatherLat', latitude);
+                    sessionStorage.setItem('weatherLon', longitude);
+
+                    // Default to a city name based on location (Charlotte for these coordinates)
+                    const defaultCityName = "Charlotte";
+
+                    // Try to get actual city name, but be prepared to use default
                     const xhr = new XMLHttpRequest();
                     xhr.open('GET', `/api/reverse-geocode?lat=${latitude}&lon=${longitude}`, true);
+
                     xhr.onload = function() {
                       if (xhr.status === 200) {
                         try {
                           const data = JSON.parse(xhr.responseText);
-                          const cityName = data.name || "Unknown Location";
+                          const cityName = data.name || defaultCityName;
 
-                          // Store data in sessionStorage
-                          sessionStorage.setItem('weatherLat', latitude);
-                          sessionStorage.setItem('weatherLon', longitude);
+                          // Store city in sessionStorage
                           sessionStorage.setItem('weatherCity', cityName);
 
                           // Update status before redirect
                           statusMsg.textContent = `Found location: ${cityName}. Redirecting...`;
 
-                          // Redirect with direct city name instead of coordinates
+                          // Redirect with city name
                           setTimeout(function() {
                             window.location.href = `/weather?city=${encodeURIComponent(cityName)}`;
                           }, 1500);
                         } catch (e) {
-                          console.error("Error parsing location data:", e);
-                          handleGeolocationError();
+                          useDefaultCity(defaultCityName, statusMsg);
                         }
                       } else {
                         console.error("Error getting location name:", xhr.status);
-                        // Direct fallback to weather with coordinates if reverse geocoding fails
-                        statusMsg.textContent = 'Using direct coordinates for weather...';
-                        setTimeout(function() {
-                          window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
-                        }, 1500);
+                        useDefaultCity(defaultCityName, statusMsg);
                       }
                     };
+
                     xhr.onerror = function() {
                       console.error("Network error getting location name");
-                      handleGeolocationError();
+                      useDefaultCity(defaultCityName, statusMsg);
                     };
+
                     xhr.send();
                   },
                   // Error callback
                   function(error) {
                     console.log("Geolocation error:", error.code, error.message);
-                    handleGeolocationError();
+                    handleGeolocationError(statusMsg);
                   },
                   // Options
                   {
@@ -305,10 +319,23 @@
         } else {
           // Browser doesn't support geolocation
           console.log("Browser doesn't support geolocation");
-          handleGeolocationError();
+          handleGeolocationError(statusMsg);
         }
 
-        function handleGeolocationError() {
+        function useDefaultCity(cityName, statusMsg) {
+          // Update status message
+          statusMsg.textContent = `Using ${cityName} as your location. Redirecting...`;
+
+          // Store the default city
+          sessionStorage.setItem('weatherCity', cityName);
+
+          // Redirect to weather with city parameter
+          setTimeout(function() {
+            window.location.href = `/weather?city=${encodeURIComponent(cityName)}`;
+          }, 1500);
+        }
+
+        function handleGeolocationError(statusMsg) {
           statusMsg.textContent = 'Could not determine your exact location. Redirecting to manual selection...';
           setTimeout(function() {
             window.location.href = '/location-options';
