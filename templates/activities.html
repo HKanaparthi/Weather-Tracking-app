@@ -1,0 +1,148 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Weather Impact Assessment</title>
+        <link rel="stylesheet" href="../static/css/weatherImpact.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </head>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-logo">
+            <a href="/" class="logo">
+                <img src="/static/Mainlogo.png" alt="GoWeather Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="header-right">
+            <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
+            <div class="nav-buttons">
+                <a href="./" class="transparent-button">Home</a>
+
+                <a href="./compare" class="transparent-button compare-button">Compare</a>
+                <a href="./historical-comparison" class="transparent-button">Historical</a>
+                <a href="./travel-weather" class="transparent-button">Travel Plan</a>
+                <a href="./activities" class="transparent-button" style="background-color: #3498db">Activities</a>
+
+                <!-- Profile dropdown -->
+                <div class="profile-dropdown">
+                    <div class="profile-circle" id="profileCircle">
+                        <img id="profile-photo" src="{{ if .User.ProfilePhoto }}/static/profile_photos/{{ .User.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo" height="40px">
+                    </div>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <a href="./profile"><i class="fas fa-user"></i> Profile</a>
+                        <a href="./logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <body>
+    <div class="container">
+        <header>
+            <h1>Weather Impact Assessment</h1>
+            <p>See how current and forecasted weather conditions might affect various activities and plan accordingly.</p>
+        </header>
+
+        <!-- Weather Alert Banner -->
+        <div id="weather-alert" class="weather-alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="alert-text">Weather alert message will appear here</span>
+            <button class="alert-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Search Form -->
+        <div class="location-search">
+            <form action="/weather-impact" method="GET">
+                <input type="text" name="city" placeholder="Enter city name" required>
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="loading">
+            <div class="spinner"></div>
+            <p>Loading weather data...</p>
+        </div>
+
+        <!-- Current Weather Display -->
+        <div id="current-weather-summary" class="weather-summary">
+            <div class="weather-location">
+                <h2 id="current-location">Location</h2>
+                <div class="weather-condition">
+                    <img id="current-condition-icon" src="" alt="Weather condition">
+                    <span id="current-condition-text" style="color: whitesmoke">Weather condition</span>
+                </div>
+            </div>
+            <div class="weather-details">
+                <div class="weather-temp">
+                    <span id="current-temp">--°C</span>
+                </div>
+                <div class="weather-metrics">
+                    <div id="current-humidity" style="color: whitesmoke">Humidity: --%</div>
+                    <div id="current-wind" style="color: whitesmoke">Wind: -- m/s</div>
+                    <div id="current-visibility" style="color: whitesmoke">Visibility: -- km</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Categories -->
+        <div id="impact-filter" class="impact-filter">
+            <h3>Filter by Category</h3>
+            <div class="impact-categories">
+                <div class="impact-category active" data-category="all">
+                    <i class="fas fa-border-all"></i>
+                    <span>All</span>
+                </div>
+                <div class="impact-category" data-category="outdoor">
+                    <i class="fas fa-tree"></i>
+                    <span>Outdoor</span>
+                </div>
+                <div class="impact-category" data-category="agriculture">
+                    <i class="fas fa-seedling"></i>
+                    <span>Agriculture</span>
+                </div>
+                <div class="impact-category" data-category="construction">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>Construction</span>
+                </div>
+                <div class="impact-category" data-category="health">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Health</span>
+                </div>
+                <div class="impact-category" data-category="travel">
+                    <i class="fas fa-car"></i>
+                    <span>Travel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Cards Container -->
+        <div id="impact-cards" class="impact-cards-container">
+            <!-- Cards will be inserted dynamically via JavaScript -->
+        </div>
+
+        <!-- No Results Message -->
+        <div id="no-results" class="no-results">
+            <h3>No Impact Data Available</h3>
+            <p>Please search for a location to view weather impact assessments.</p>
+        </div>
+
+        <!-- Impact Details Modal -->
+        <div id="impact-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Impact Details</h3>
+                    <span id="modal-close" class="modal-close">&times;</span>
+                </div>
+                <div id="modal-body" class="modal-body" style="color: whitesmoke">
+                    <!-- Modal content will be inserted dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/weather-impact.js"></script>
+    <script src="/static/js/weather-impact-integration.js"></script>
+    </body>
+    </html>

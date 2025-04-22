@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -65,7 +66,8 @@ func (h *AuthHandler) PostSignup(c *gin.Context) {
 		Password:             password, // Will be hashed in CreateUser
 		HomeCity:             homeCity,
 		NotificationsEnabled: false,
-		AlertThreshold:       "severe", // Default to severe alerts only
+		AlertThreshold:       "severe",      // Default to severe alerts only
+		ProfilePhoto:         "default.jpg", // Default profile photo
 	}
 
 	// Try to save the user
@@ -188,10 +190,16 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
+	// Get success parameter if any
+	success := c.Query("success")
+	errorMsg := c.Query("error")
+
 	// Render profile page
 	c.HTML(http.StatusOK, "profile.html", gin.H{
-		"title": "Your Profile - Weather App",
-		"user":  user,
+		"title":   "Your Profile - Weather App",
+		"user":    user,
+		"success": success,
+		"error":   errorMsg,
 	})
 }
 
@@ -208,13 +216,42 @@ func (h *AuthHandler) PostProfile(c *gin.Context) {
 		return
 	}
 
-	// Update user fields
-	user.Email = c.PostForm("email")
-	user.HomeCity = c.PostForm("home_city")
+	// Get form data
+	email := c.PostForm("email")
+	homeCity := c.PostForm("home_city")
+	notificationsEnabled := c.PostForm("notifications_enabled") == "on"
+	alertThreshold := c.PostForm("alert_threshold")
+	profilePhoto := c.PostForm("profile_photo")
 
-	// Update notification preferences
-	user.NotificationsEnabled = c.PostForm("notifications_enabled") == "on"
-	user.AlertThreshold = c.PostForm("alert_threshold")
+	// Debug logging - add this
+	log.Printf("Profile update - User ID: %d, Username: %s", user.ID, user.Username)
+	log.Printf("Profile photo from form: '%s'", profilePhoto)
+
+	// Update user fields
+	user.Email = email
+	user.HomeCity = homeCity
+	user.NotificationsEnabled = notificationsEnabled
+	user.AlertThreshold = alertThreshold
+
+	// Update profile photo if provided
+	if profilePhoto != "" {
+		// Validate profile photo
+		validPhotos := map[string]bool{
+			"photo1.jpg":  true,
+			"photo2.jpg":  true,
+			"photo3.jpg":  true,
+			"photo4.jpg":  true,
+			"photo5.jpg":  true,
+			"default.jpg": true,
+		}
+
+		if validPhotos[profilePhoto] {
+			log.Printf("Setting profile photo to: %s", profilePhoto)
+			user.ProfilePhoto = profilePhoto
+		} else {
+			log.Printf("Invalid profile photo selection: %s", profilePhoto)
+		}
+	}
 
 	// If alert threshold is not set, default to "severe"
 	if user.AlertThreshold == "" {
@@ -237,8 +274,11 @@ func (h *AuthHandler) PostProfile(c *gin.Context) {
 		user.Password = newPassword
 	}
 
-	// Save changes
-	err = h.userStore.UpdateUser(user)
+	// Update timestamp
+	user.UpdatedAt = time.Now()
+
+	// Save changes - use UpdateUserProfile for more validation
+	err = h.userStore.UpdateUserProfile(user)
 	if err != nil {
 		log.Printf("Error updating user profile: %v", err)
 		c.HTML(http.StatusInternalServerError, "profile.html", gin.H{
@@ -249,10 +289,9 @@ func (h *AuthHandler) PostProfile(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Profile successfully updated for user ID: %d", user.ID)
+	log.Printf("Profile photo set to: %s", user.ProfilePhoto)
+
 	// Redirect back to profile with success message
-	c.HTML(http.StatusOK, "profile.html", gin.H{
-		"title":   "Your Profile - Weather App",
-		"user":    user,
-		"success": "Profile updated successfully",
-	})
+	c.Redirect(http.StatusSeeOther, "/profile?success=true")
 }

@@ -18,25 +18,27 @@
     <div class="header-right">
         <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
         <div class="nav-buttons">
-            <a href="/dashboard" class="transparent-button">Home</a>
-            <a href="/historical-comparison" class="transparent-button">Historical</a>
-            <a href="/activities" class="transparent-button">Activities</a>
-            <a href="/alerts" class="transparent-button premium-feature">Alerts</a>
+            <a href="./" class="transparent-button">Home</a>
+
+            <a href="./compare" class="transparent-button compare-button">Compare</a>
+            <a href="./historical-comparison" class="transparent-button">Historical</a>
+            <a href="./travel-weather" class="transparent-button">Travel Plan</a>
+            <a href="./activities" class="transparent-button">Activities</a>
+
 
             <!-- Profile dropdown -->
             <div class="profile-dropdown">
-                <div class="profile-circle">
-                    <span id="profile-initial">U</span>
+                <div class="profile-circle" id="profileCircle">
+                    <img id="profile-photo" src="{{ if .User.ProfilePhoto }}/static/profile_photos/{{ .User.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo" height="40px">
                 </div>
-                <div class="dropdown-content">
-                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
-                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <div class="dropdown-content" id="dropdownContent">
+                    <a href="./profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="./logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 <div class="dashboard-container">
     <h1>Weather Comparison</h1>
 
@@ -51,9 +53,6 @@
         <form id="searchForm" action="#" method="GET">
             <div class="search-box">
                 <input type="text" id="city-input" class="search-bar" placeholder="Enter city name">
-                <button type="button" id="getLocation" class="location-button" title="Use your current location">
-                    <i class="fas fa-location-arrow"></i>
-                </button>
             </div>
             <button type="button" id="add-city" class="search-button">Add City</button>
             <button type="button" id="clear-all" class="search-button clear-all-button">Clear All</button>
@@ -242,12 +241,15 @@
             });
         });
 
-        // Set profile initial based on username
         const username = document.getElementById('username').textContent.trim();
         if (username && username !== 'User') {
-            document.getElementById('profile-initial').textContent = username.charAt(0);
+            const profileInitial = document.getElementById('profile-initial');
+            if (profileInitial) {
+                profileInitial.textContent = username.charAt(0).toUpperCase();
+            }
         }
     });
+
 </script>
 </body>
 </html>

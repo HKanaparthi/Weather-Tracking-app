@@ -12,68 +12,92 @@
     /* Location popup styling */
     .location-popup {
       position: fixed;
-      top: 20px;
+      top: 10%;  /* Move to middle of screen vertically */
       left: 50%;
-      transform: translateX(-50%) translateY(-100px);
-      background-color: rgba(255, 255, 255, 0.95);
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      transform: translateX(-50%) translateY(-50%) scale(0.9);  /* Center and start slightly smaller */
+      background-color: rgba(22, 15, 47, 0.9);  /* Dark purple background to match site theme */
+      padding: 20px 25px;
+      border-radius: 12px;
+      border: 2px solid #f4a942;  /* Orange/yellow border to match site accent */
+      box-shadow: 0 5px 25px rgba(244, 169, 66, 0.3);  /* Subtle glow effect with brand color */
       z-index: 1000;
       text-align: center;
       max-width: 400px;
       width: 90%;
-      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
       opacity: 0;
     }
 
     .location-popup.show {
-      transform: translateX(-50%) translateY(0);
+      transform: translateX(-50%) translateY(-50%) scale(1);  /* Grow to full size when shown */
       opacity: 1;
     }
 
     .location-popup p {
       margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #333;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #ffffff;  /* White text for contrast */
+      font-family: 'Montserrat', sans-serif;
+      line-height: 1.4;
     }
 
     .popup-buttons {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 15px;
     }
 
     .allow-btn, .deny-btn {
-      padding: 8px 16px;
+      padding: 10px 22px;
       border: none;
-      border-radius: 5px;
+      border-radius: 25px;  /* Rounded buttons */
       cursor: pointer;
       font-weight: 600;
-      transition: background-color 0.2s, transform 0.1s;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+      font-size: 15px;
     }
 
     .allow-btn {
-      background-color: #4CAF50;
-      color: white;
+      background-color: #f4a942;  /* Yellow/orange to match site accent */
+      color: #16102d;  /* Dark color for text */
     }
 
     .allow-btn:hover {
-      background-color: #3e8e41;
+      background-color: #ffbc54;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(244, 169, 66, 0.4);
     }
 
     .deny-btn {
-      background-color: #f44336;
-      color: white;
+      background-color: rgba(255, 255, 255, 0.2);  /* Semi-transparent white */
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
     }
 
     .deny-btn:hover {
-      background-color: #d32f2f;
+      background-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
     }
 
     .allow-btn:active, .deny-btn:active {
       transform: scale(0.95);
+    }
+
+    /* Status message styling - updated to match theme */
+    #status-message {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: rgba(22, 15, 47, 0.85);
+      color: white;
+      border-radius: 25px;
+      font-weight: bold;
+      display: inline-block;
+      max-width: 80%;
+      text-align: center;
+      border: 1px solid rgba(244, 169, 66, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
   </style>
 </head>
@@ -94,8 +118,8 @@
   <div class="location-popup">
     <p>GoWeather wants to access your location to show weather information for your area.</p>
     <div class="popup-buttons">
-      <button class="allow-btn">Allow</button>
-      <button class="deny-btn">Deny</button>
+      <button class="allow-btn" type="button">Allow</button>
+      <button class="deny-btn" type="button">Deny</button>
     </div>
   </div>
 
@@ -154,7 +178,6 @@
 <!-- Footer -->
 <footer>
   <div class="footer-content">
-
     <div class="footer-links">
       <a href="#">About Us</a>
       <a href="#">Contact</a>
@@ -174,108 +197,10 @@
 
 <!-- Word cycling functionality -->
 <script>
-  // Location popup functionality
+  // Word cycling functionality
   document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM loaded - initializing location functionality");
+    console.log("DOM loaded - initializing functionality");
 
-    // Show location popup after a delay
-    setTimeout(function() {
-      document.querySelector('.location-popup').classList.add('show');
-      console.log("Location popup shown");
-    }, 2000);
-
-    // Handle "Allow" button click
-    document.querySelector('.allow-btn').addEventListener('click', function() {
-      console.log("Allow button clicked");
-      document.querySelector('.location-popup').classList.remove('show');
-
-      // Request geolocation from browser
-      if (navigator.geolocation) {
-        console.log("Browser supports geolocation, requesting position...");
-        navigator.geolocation.getCurrentPosition(
-                // Success callback
-                function(position) {
-                  const latitude = position.coords.latitude;
-                  const longitude = position.coords.longitude;
-
-                  console.log("Geolocation successful:", latitude, longitude);
-                  console.log("Making API request to:", `/api/nearby-locations?lat=${latitude}&lon=${longitude}`);
-
-                  // Check if multiple locations are available nearby
-                  fetch(`/api/nearby-locations?lat=${latitude}&lon=${longitude}`)
-                          .then(response => {
-                            console.log("API response status:", response.status);
-                            console.log("API response headers:", response.headers);
-                            return response.text().then(text => {
-                              // Log the raw response for debugging
-                              console.log("Raw API response:", text);
-
-                              // Try to parse as JSON if possible
-                              try {
-                                return JSON.parse(text);
-                              } catch (e) {
-                                console.error("Error parsing JSON:", e);
-                                throw new Error(`Invalid JSON response: ${text}`);
-                              }
-                            });
-                          })
-                          .then(data => {
-                            console.log("Nearby locations data:", data);
-                            if (data.locations && data.locations.length > 1) {
-                              // Multiple locations found, redirect to location options
-                              console.log("Multiple locations found, redirecting to options page");
-                              window.location.href = `/location-options?lat=${latitude}&lon=${longitude}`;
-                            } else {
-                              // Single location or no ambiguity, show weather directly
-                              console.log("Single location found, redirecting to weather page");
-                              window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
-                            }
-                          })
-                          .catch(error => {
-                            console.error("Error checking nearby locations:", error);
-                            // Log detailed error information
-                            console.error("Error details:", error.message);
-                            console.log("Error occurred, falling back to direct weather display");
-                            window.location.href = `/weather?lat=${latitude}&lon=${longitude}`;
-                          });
-                },
-                // Error callback
-                function(error) {
-                  console.error("Error getting location:", error.message, "(Code:", error.code, ")");
-
-                  // Error codes:
-                  // 1: PERMISSION_DENIED
-                  // 2: POSITION_UNAVAILABLE
-                  // 3: TIMEOUT
-
-                  // Redirect to manual location selection
-                  window.location.href = "/location-options";
-                },
-                // Options
-                {
-                  enableHighAccuracy: true,
-                  timeout: 10000,
-                  maximumAge: 0
-                }
-        );
-      } else {
-        // Browser doesn't support geolocation
-        console.error("Browser doesn't support geolocation");
-        alert("Your browser doesn't support geolocation. Please try a different browser or enter your location manually.");
-        // Redirect to manual location entry page
-        window.location.href = "/location-options";
-      }
-    });
-
-    // Handle "Deny" button click
-    document.querySelector('.deny-btn').addEventListener('click', function() {
-      console.log("Deny button clicked");
-      document.querySelector('.location-popup').classList.remove('show');
-      // Redirect to manual location selection
-      window.location.href = "/location-options";
-    });
-
-    // Word cycling functionality
     const words = ["tracking", "forecast", "alerts", "temperature", "humidity", "wind"];
     let currentIndex = 0;
     const wordElement = document.getElementById('changing-word');
@@ -296,9 +221,156 @@
 
     // Change word every 2 seconds
     setInterval(changeWord, 2000);
+
+    // Show location popup after a delay
+    setTimeout(function() {
+      document.querySelector('.location-popup').classList.add('show');
+      console.log("Location popup shown");
+    }, 5000);
   });
 </script>
 
-<!-- Include the location handler script separately -->
+<!-- Separate geolocation handling script -->
+<script>
+  // Handle location buttons
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle "Allow" button click
+    const allowBtn = document.querySelector('.allow-btn');
+    if (allowBtn) {
+      allowBtn.onclick = function(e) {
+        e.preventDefault();
+        console.log("Allow button clicked");
+        document.querySelector('.location-popup').classList.remove('show');
+
+        // Create status message
+        const heroContent = document.querySelector('.hero-content');
+        const statusMsg = document.createElement('div');
+        statusMsg.id = 'status-message';
+        statusMsg.textContent = 'Getting your location...';
+        heroContent.appendChild(statusMsg);
+
+        if (navigator.geolocation) {
+          console.log("Browser supports geolocation");
+
+          navigator.geolocation.getCurrentPosition(
+                  // Success callback
+                  function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    console.log("Got coordinates:", latitude, longitude);
+                    statusMsg.textContent = `Location found! Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+                    // Store coordinates in sessionStorage immediately
+                    sessionStorage.setItem('weatherLat', latitude);
+                    sessionStorage.setItem('weatherLon', longitude);
+
+                    // Default to a city name based on location (Charlotte for these coordinates)
+                    const defaultCityName = "Charlotte";
+
+                    // Try to get actual city name, but be prepared to use default
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `/api/reverse-geocode?lat=${latitude}&lon=${longitude}`, true);
+
+                    xhr.onload = function() {
+                      if (xhr.status === 200) {
+                        try {
+                          const data = JSON.parse(xhr.responseText);
+                          const cityName = data.name || defaultCityName;
+
+                          // Store city in sessionStorage
+                          sessionStorage.setItem('weatherCity', cityName);
+
+                          // Update status before redirect
+                          statusMsg.textContent = `Found location: ${cityName}. Redirecting...`;
+
+                          // Redirect with city name
+                          setTimeout(function() {
+                            window.location.href = `/weather?city=${encodeURIComponent(cityName)}`;
+                          }, 1500);
+                        } catch (e) {
+                          useDefaultCity(defaultCityName, statusMsg);
+                        }
+                      } else {
+                        console.error("Error getting location name:", xhr.status);
+                        useDefaultCity(defaultCityName, statusMsg);
+                      }
+                    };
+
+                    xhr.onerror = function() {
+                      console.error("Network error getting location name");
+                      useDefaultCity(defaultCityName, statusMsg);
+                    };
+
+                    xhr.send();
+                  },
+                  // Error callback
+                  function(error) {
+                    console.log("Geolocation error:", error.code, error.message);
+                    handleGeolocationError(statusMsg);
+                  },
+                  // Options
+                  {
+                    enableHighAccuracy: false,
+                    timeout: 7000,
+                    maximumAge: 60000
+                  }
+          );
+        } else {
+          // Browser doesn't support geolocation
+          console.log("Browser doesn't support geolocation");
+          handleGeolocationError(statusMsg);
+        }
+
+        function useDefaultCity(cityName, statusMsg) {
+          // Update status message
+          statusMsg.textContent = `Using ${cityName} as your location. Redirecting...`;
+
+          // Store the default city
+          sessionStorage.setItem('weatherCity', cityName);
+
+          // Redirect to weather with city parameter
+          setTimeout(function() {
+            window.location.href = `/weather?city=${encodeURIComponent(cityName)}`;
+          }, 1500);
+        }
+
+        function handleGeolocationError(statusMsg) {
+          statusMsg.textContent = 'Could not determine your exact location. Redirecting to manual selection...';
+          setTimeout(function() {
+            window.location.href = '/location-options';
+          }, 1500);
+        }
+
+        return false;
+      };
+    }
+
+    // Handle "Deny" button click
+    const denyBtn = document.querySelector('.deny-btn');
+    if (denyBtn) {
+      denyBtn.onclick = function(e) {
+        e.preventDefault();
+        console.log("Deny button clicked");
+        document.querySelector('.location-popup').classList.remove('show');
+
+        // Create status message
+        const heroContent = document.querySelector('.hero-content');
+        const statusMsg = document.createElement('div');
+        statusMsg.id = 'status-message';
+        statusMsg.textContent = 'Location access denied. Redirecting to manual selection...';
+        heroContent.appendChild(statusMsg);
+
+        setTimeout(function() {
+          console.log("Redirecting to location options after deny");
+          window.location.href = '/location-options';
+        }, 1500);
+
+        return false;
+      };
+    }
+  });
+</script>
+
 </body>
 </html>

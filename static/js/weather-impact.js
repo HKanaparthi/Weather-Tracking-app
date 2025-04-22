@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${activity.title}
                 </div>
                 <div class="impact-card-rating">
-                    <i class="fas fa-circle ${ratingClass}"></i>
+                        <i class="fas fa-circle ${ratingClass}"></i>
                     <span class="impact-card-rating-text ${ratingClass}">${activity.rating}</span>
                 </div>
             </div>

@@ -19,6 +19,8 @@ type User struct {
 	HomeCity             string    `json:"home_city" db:"home_city"`
 	NotificationsEnabled bool      `json:"notifications_enabled" db:"notifications_enabled"`
 	AlertThreshold       string    `json:"alert_threshold" db:"alert_threshold"` // e.g., "severe", "moderate", "all"
+	ProfilePhoto         string    `json:"profile_photo" db:"profile_photo"`     // New field for profile photo
+	AvatarColor          string    `json:"avatar_color" db:"avatar_color"`       // Added for avatar color
 	CreatedAt            time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at" db:"updated_at"`
 }
@@ -30,7 +32,9 @@ type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
 	UpdateUser(user *User) error
+	UpdateUserProfile(user *User) error // New method for profile updates
 	GetUsersWithDailyReports() ([]*User, error)
+	GetDB() *sql.DB // Add this method to get database connection
 	Close() error
 }
 
@@ -84,6 +88,15 @@ func (s *MySQLStore) CreateUser(user *User) error {
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
+	// Set default values if not provided
+	if user.ProfilePhoto == "" {
+		user.ProfilePhoto = "default.jpg" // Default profile photo
+	}
+
+	if user.AvatarColor == "" {
+		user.AvatarColor = "blue" // Default avatar color
+	}
+
 	// Start a transaction
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -93,8 +106,8 @@ func (s *MySQLStore) CreateUser(user *User) error {
 
 	// Insert the user
 	result, err := tx.Exec(
-		"INSERT INTO users (username, email, password, home_city, notifications_enabled, alert_threshold, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		user.Username, user.Email, string(hashedPassword), user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.CreatedAt, user.UpdatedAt)
+		"INSERT INTO users (username, email, password, home_city, notifications_enabled, alert_threshold, profile_photo, avatar_color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		user.Username, user.Email, string(hashedPassword), user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.ProfilePhoto, user.AvatarColor, user.CreatedAt, user.UpdatedAt)
 
 	if err != nil {
 		// Check for duplicate key error
@@ -127,9 +140,9 @@ func (s *MySQLStore) CreateUser(user *User) error {
 func (s *MySQLStore) GetUserByUsername(username string) (*User, error) {
 	user := &User{}
 	err := s.db.QueryRow(
-		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, created_at, updated_at FROM users WHERE username = ?",
+		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, profile_photo, avatar_color, created_at, updated_at FROM users WHERE username = ?",
 		username).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.HomeCity,
-		&user.NotificationsEnabled, &user.AlertThreshold, &user.CreatedAt, &user.UpdatedAt)
+		&user.NotificationsEnabled, &user.AlertThreshold, &user.ProfilePhoto, &user.AvatarColor, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -145,9 +158,9 @@ func (s *MySQLStore) GetUserByUsername(username string) (*User, error) {
 func (s *MySQLStore) GetUserByEmail(email string) (*User, error) {
 	user := &User{}
 	err := s.db.QueryRow(
-		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, created_at, updated_at FROM users WHERE email = ?",
+		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, profile_photo, avatar_color, created_at, updated_at FROM users WHERE email = ?",
 		email).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.HomeCity,
-		&user.NotificationsEnabled, &user.AlertThreshold, &user.CreatedAt, &user.UpdatedAt)
+		&user.NotificationsEnabled, &user.AlertThreshold, &user.ProfilePhoto, &user.AvatarColor, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -163,9 +176,9 @@ func (s *MySQLStore) GetUserByEmail(email string) (*User, error) {
 func (s *MySQLStore) GetUserByID(id int) (*User, error) {
 	user := &User{}
 	err := s.db.QueryRow(
-		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, created_at, updated_at FROM users WHERE id = ?",
+		"SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, profile_photo, avatar_color, created_at, updated_at FROM users WHERE id = ?",
 		id).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.HomeCity,
-		&user.NotificationsEnabled, &user.AlertThreshold, &user.CreatedAt, &user.UpdatedAt)
+		&user.NotificationsEnabled, &user.AlertThreshold, &user.ProfilePhoto, &user.AvatarColor, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -181,7 +194,7 @@ func (s *MySQLStore) GetUserByID(id int) (*User, error) {
 func (s *MySQLStore) GetUsersWithDailyReports() ([]*User, error) {
 	users := []*User{}
 	query := `
-        SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, created_at, updated_at 
+        SELECT id, username, email, password, home_city, notifications_enabled, alert_threshold, profile_photo, avatar_color, created_at, updated_at 
         FROM users 
         WHERE notifications_enabled = true 
         AND alert_threshold = 'all' 
@@ -199,7 +212,7 @@ func (s *MySQLStore) GetUsersWithDailyReports() ([]*User, error) {
 		err := rows.Scan(
 			&user.ID, &user.Username, &user.Email, &user.Password,
 			&user.HomeCity, &user.NotificationsEnabled, &user.AlertThreshold,
-			&user.CreatedAt, &user.UpdatedAt,
+			&user.ProfilePhoto, &user.AvatarColor, &user.CreatedAt, &user.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -236,8 +249,8 @@ func (s *MySQLStore) UpdateUser(user *User) error {
 		}
 
 		_, err = tx.Exec(
-			"UPDATE users SET email = ?, password = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, updated_at = ? WHERE id = ?",
-			user.Email, string(hashedPassword), user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.UpdatedAt, user.ID)
+			"UPDATE users SET email = ?, password = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, profile_photo = ?, avatar_color = ?, updated_at = ? WHERE id = ?",
+			user.Email, string(hashedPassword), user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.ProfilePhoto, user.AvatarColor, user.UpdatedAt, user.ID)
 
 		if err != nil {
 			return handleUpdateError(err)
@@ -245,8 +258,74 @@ func (s *MySQLStore) UpdateUser(user *User) error {
 	} else {
 		// Otherwise just update other fields
 		_, err = tx.Exec(
-			"UPDATE users SET email = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, updated_at = ? WHERE id = ?",
-			user.Email, user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.UpdatedAt, user.ID)
+			"UPDATE users SET email = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, profile_photo = ?, avatar_color = ?, updated_at = ? WHERE id = ?",
+			user.Email, user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.ProfilePhoto, user.AvatarColor, user.UpdatedAt, user.ID)
+
+		if err != nil {
+			return handleUpdateError(err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// UpdateUserProfile updates only the profile-related fields of an existing user
+func (s *MySQLStore) UpdateUserProfile(user *User) error {
+	// Get existing user to confirm it exists
+	existingUser, err := s.GetUserByID(user.ID)
+	if err != nil {
+		return err
+	}
+
+	// Update timestamp
+	user.UpdatedAt = time.Now()
+
+	// Start transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Validate profile photo
+	validPhotos := map[string]bool{
+		"photo1.jpg":  true,
+		"photo2.jpg":  true,
+		"photo3.jpg":  true,
+		"photo4.jpg":  true,
+		"photo5.jpg":  true,
+		"default.jpg": true,
+	}
+
+	// If profile photo is not provided or invalid, keep existing
+	if user.ProfilePhoto == "" || !validPhotos[user.ProfilePhoto] {
+		user.ProfilePhoto = existingUser.ProfilePhoto
+	}
+
+	// If avatar color is not provided, keep existing
+	if user.AvatarColor == "" {
+		user.AvatarColor = existingUser.AvatarColor
+	}
+
+	// Only update password if a new one is provided
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(
+			"UPDATE users SET email = ?, password = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, profile_photo = ?, avatar_color = ?, updated_at = ? WHERE id = ?",
+			user.Email, string(hashedPassword), user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.ProfilePhoto, user.AvatarColor, user.UpdatedAt, user.ID)
+
+		if err != nil {
+			return handleUpdateError(err)
+		}
+	} else {
+		// Otherwise just update other fields
+		_, err = tx.Exec(
+			"UPDATE users SET email = ?, home_city = ?, notifications_enabled = ?, alert_threshold = ?, profile_photo = ?, avatar_color = ?, updated_at = ? WHERE id = ?",
+			user.Email, user.HomeCity, user.NotificationsEnabled, user.AlertThreshold, user.ProfilePhoto, user.AvatarColor, user.UpdatedAt, user.ID)
 
 		if err != nil {
 			return handleUpdateError(err)
@@ -267,6 +346,9 @@ func handleUpdateError(err error) error {
 		return errors.New("duplicate entry error")
 	}
 	return err
+}
+func (s *MySQLStore) GetDB() *sql.DB {
+	return s.db
 }
 
 // ValidatePassword checks if the provided password matches the user's password

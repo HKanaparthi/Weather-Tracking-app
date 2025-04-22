@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Chats | Weather App</title>
+    <link rel="stylesheet" href="/static/css/chat_list.css">
+    <!-- Add font-awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <header class="main-header">
+        <div class="logo">
+            <a href="/dashboard">
+                <img src="/static/Mainlogo.png" alt="GO WEATHER Logo">
+            </a>
+        </div>
+        <div class="user-info">
+            <span>Welcome, {{.User.Username}}</span>
+            <div class="avatar" style="background-color: {{if .User.AvatarColor}}{{.User.AvatarColor}}{{else}}#3498db{{end}}">
+                {{if .User.ProfilePhoto}}
+                <img src="/static/profile_photos/{{.User.ProfilePhoto}}" alt="{{.User.Username}}">
+                {{else}}
+                {{.User.Username}}
+                {{end}}
+            </div>
+        </div>
+    </header>
+
+    <!-- Weather Chats Header -->
+    <div class="page-header">
+        <h1 class="page-title">Weather Chats</h1>
+        <p class="page-subtitle">Connect with people in cities around the world</p>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Chat section wrapper -->
+        <div class="chat-section">
+            <!-- Join any city chat section -->
+            <div class="join-city-section">
+                <h2 class="section-title">Join any City Chat</h2>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="city-search" class="search-input" placeholder="Enter city name...">
+                        <button id="search-btn" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="search-results" class="search-results"></div>
+            </div>
+
+            <!-- Popular chats -->
+            <div class="popular-chats">
+                <h2 class="section-title">Popular Chats</h2>
+                <div id="popular-cities-grid" class="chat-cards">
+                    <!-- Example of a popular city card for display purposes -->
+                    <a href="#" class="chat-card">
+                        <h3 class="chat-card-title">Charlotte</h3>
+                        <div class="city-weather">
+
+                        </div>
+                        <div class="chat-card-stats">
+                            <div class="chat-stat">
+                                <i class="fas fa-users"></i>
+                                <span>0 active</span>
+                            </div>
+                            <div class="chat-stat">
+                                <i class="fas fa-comment"></i>
+                                <span>6 messages today</span>
+                            </div>
+                        </div>
+                    </a>
+                    <!-- Popular cities will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Saved cities section -->
+            <div class="saved-cities">
+                <h2 class="section-title">Your Saved Cities</h2>
+                <div id="saved-cities-grid" class="chat-cards">
+                    <!-- Saved cities will be loaded here -->
+                    <div class="no-cities">
+                        <p>You haven't saved any cities yet.</p>
+                        <p>Find a city using the search above or visit the weather page for a city and click "Save City".</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back button -->
+        <a href="/dashboard" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Templates -->
+<template id="city-card-template">
+    <a href="" class="chat-card">
+        <h3 class="chat-card-title"></h3>
+        <div class="city-weather">
+
+        </div>
+        <div class="chat-card-stats">
+            <span><i class="fas fa-comment"></i> Chat Now</span>
+        </div>
+        <button class="remove-city" title="Remove from saved cities">
+            <i class="fas fa-times"></i>
+        </button>
+    </a>
+</template>
+
+<template id="popular-city-card-template">
+    <a href="" class="chat-card popular">
+        <h3 class="chat-card-title"></h3>
+        <div class="city-weather">
+
+        </div>
+        <div class="chat-card-stats">
+            <div class="chat-stat">
+                <i class="fas fa-users"></i>
+                <span class="active-users"><span class="count">0</span> active</span>
+            </div>
+            <div class="chat-stat">
+                <i class="fas fa-comment"></i>
+                <span class="message-count"><span class="count">0</span> messages today</span>
+            </div>
+        </div>
+    </a>
+</template>
+
+<template id="empty-saved-cities-template">
+    <div class="no-cities">
+        <p>You haven't saved any cities yet.</p>
+        <p>Find a city using the search below or visit the weather page for a city and click "Save City".</p>
+    </div>
+</template>
+
+<template id="empty-popular-cities-template">
+    <div class="no-cities">
+        <p>No active chat rooms found.</p>
+        <p>Be the first to start a conversation in a city!</p>
+    </div>
+</template>
+
+<script src="/static/js/save-city.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load saved cities
+        loadSavedCities();
+
+        // Load popular chat rooms
+        loadPopularChatRooms();
+
+        // City search functionality
+        const searchInput = document.getElementById('city-search');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+
+        searchBtn.addEventListener('click', searchCity);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCity();
+            }
+        });
+
+        function searchCity() {
+            const query = searchInput.value.trim();
+            if (query.length < 2) return;
+
+            // Show loading indicator
+            searchResults.innerHTML = '<div class="loading">Searching...</div>';
+
+            // Use your existing location API to search for cities
+            fetch(`/api/geocode?location=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+
+                    if (data.length === 0) {
+                        searchResults.innerHTML = '<div class="no-results">No cities found</div>';
+                        return;
+                    }
+
+                    // First, filter out results with prefixes like "Town of", "Village of", etc.
+                    let filteredCities = data.filter(city => {
+                        const cityNameLower = city.name.toLowerCase();
+                        return !cityNameLower.includes('town of') &&
+                            !cityNameLower.includes('village of') &&
+                            !cityNameLower.includes('city of') &&
+                            !cityNameLower.includes('county of');
+                    });
+
+                    // If filtering removed all results, show just the main result
+                    if (filteredCities.length === 0) {
+                        // Find the most relevant city from the original data
+                        // (usually the one with the shortest name)
+                        data.sort((a, b) => a.name.length - b.name.length);
+                        filteredCities = [data[0]];
+                    }
+
+                    // Now group remaining cities by base name (before any comma)
+                    const baseNameMap = new Map();
+                    filteredCities.forEach(city => {
+                        // Get the base name (part before the comma)
+                        const baseName = city.name.split(',')[0].trim().toLowerCase();
+
+                        // If we don't have this base name yet, add it
+                        if (!baseNameMap.has(baseName)) {
+                            baseNameMap.set(baseName, city);
+                        } else {
+                            // If we do have it, prioritize entries with country info
+                            const existing = baseNameMap.get(baseName);
+                            if (!existing.country && city.country) {
+                                baseNameMap.set(baseName, city);
+                            }
+                        }
+                    });
+
+                    // Display the filtered results
+                    Array.from(baseNameMap.values()).forEach(city => {
+                        const cityEl = document.createElement('div');
+                        cityEl.className = 'search-result';
+                        cityEl.innerHTML = `
+                                <div class="city-name">${city.name}${city.country ? ', ' + city.country : ''}</div>
+                                <a href="/chat?city=${encodeURIComponent(city.name)}" class="btn-join">Join Chat</a>
+                            `;
+                        searchResults.appendChild(cityEl);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error searching cities:', error);
+                    searchResults.innerHTML = '<div class="error">Failed to search cities</div>';
+                });
+        }
+    });
+
+    // Load saved cities for the current user
+    async function loadSavedCities() {
+        const savedCitiesGrid = document.getElementById('saved-cities-grid');
+        try {
+            const response = await fetch('/api/cities/saved');
+            if (!response.ok) {
+                throw new Error('Failed to fetch saved cities');
+            }
+
+            const data = await response.json();
+
+            // Clear loading message
+            savedCitiesGrid.innerHTML = '';
+
+            if (!data.cities || data.cities.length === 0) {
+                // Show empty state
+                const template = document.getElementById('empty-saved-cities-template');
+                savedCitiesGrid.appendChild(document.importNode(template.content, true));
+                return;
+            }
+
+            // Create city cards
+            data.cities.forEach(city => {
+                const template = document.getElementById('city-card-template');
+                const cityCard = document.importNode(template.content, true);
+
+                const link = cityCard.querySelector('a');
+                link.href = `/chat?city=${encodeURIComponent(city)}`;
+
+                const title = cityCard.querySelector('.chat-card-title');
+                title.textContent = city;
+
+                const weatherDiv = cityCard.querySelector('.city-weather');
+                weatherDiv.dataset.city = city;
+
+                const removeBtn = cityCard.querySelector('.remove-city');
+                removeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeCity(city, link);
+                });
+
+                savedCitiesGrid.appendChild(cityCard);
+
+                // Load weather for this city
+                loadCityWeather(city, weatherDiv);
+            });
+        } catch (error) {
+            console.error('Error loading saved cities:', error);
+            savedCitiesGrid.innerHTML = '<div class="error">Failed to load your saved cities</div>';
+        }
+    }
+
+    // Load popular chat rooms
+    async function loadPopularChatRooms() {
+        const popularCitiesGrid = document.getElementById('popular-cities-grid');
+        try {
+            const response = await fetch('/api/chat/popular');
+            if (!response.ok) {
+                throw new Error('Failed to fetch popular chat rooms');
+            }
+
+            const data = await response.json();
+
+            // Clear loading message
+            popularCitiesGrid.innerHTML = '';
+
+            if (!data.cities || data.cities.length === 0) {
+                // Show empty state
+                const template = document.getElementById('empty-popular-cities-template');
+                popularCitiesGrid.appendChild(document.importNode(template.content, true));
+                return;
+            }
+
+            // Create city cards
+            data.cities.forEach(city => {
+                const template = document.getElementById('popular-city-card-template');
+                const cityCard = document.importNode(template.content, true);
+
+                const link = cityCard.querySelector('a');
+                link.href = `/chat?city=${encodeURIComponent(city.name)}`;
+
+                const title = cityCard.querySelector('.chat-card-title');
+                title.textContent = city.name;
+
+                const weatherDiv = cityCard.querySelector('.city-weather');
+                weatherDiv.dataset.city = city.name;
+
+                const activeUsers = cityCard.querySelector('.active-users .count');
+                activeUsers.textContent = city.active_users;
+
+                const messageCount = cityCard.querySelector('.message-count .count');
+                messageCount.textContent = city.message_count;
+
+                popularCitiesGrid.appendChild(cityCard);
+
+                // Load weather for this city
+                loadCityWeather(city.name, weatherDiv);
+            });
+        } catch (error) {
+            console.error('Error loading popular chat rooms:', error);
+            popularCitiesGrid.innerHTML = '<div class="error">Failed to load popular chat rooms</div>';
+        }
+    }
+
+    // Remove a city from saved cities
+    async function removeCity(cityName, element) {
+        try {
+            const response = await fetch('/api/cities/remove', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    city_name: cityName
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to remove city');
+            }
+
+            // Remove the city card with animation
+            element.classList.add('removing');
+            setTimeout(() => {
+                element.remove();
+
+                // Check if there are no more saved cities
+                const savedCitiesGrid = document.getElementById('saved-cities-grid');
+                if (savedCitiesGrid.children.length === 0) {
+                    // Show empty state
+                    const template = document.getElementById('empty-saved-cities-template');
+                    savedCitiesGrid.appendChild(document.importNode(template.content, true));
+                }
+            }, 300);
+
+            // Show toast notification
+            if (typeof showToast === 'function') {
+                showToast(`${cityName} removed from your saved cities`);
+            }
+        } catch (error) {
+            console.error('Error removing city:', error);
+            if (typeof showToast === 'function') {
+                showToast('Failed to remove city');
+            }
+        }
+    }
+
+    // Load weather for a city
+    function loadCityWeather(cityName, element) {
+        fetch(`/api/weather?city=${encodeURIComponent(cityName)}`)
+            .then(response => response.json())
+            .then(data => {
+                element.querySelector('.temp').textContent = `${Math.round(data.main.temp)}°`;
+                element.querySelector('.condition').textContent = data.weather[0].main;
+
+                // Add weather condition class for icon
+                element.dataset.condition = data.weather[0].main;
+            })
+            .catch(error => {
+                console.error(`Error loading weather for ${cityName}:`, error);
+            });
+    }
+</script>
+</body>
+</html>

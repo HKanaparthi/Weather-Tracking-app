@@ -80,6 +80,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Form submission handling
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e) {
       console.log('Form submitted');
@@ -90,6 +91,25 @@
         console.log(`${key}: ${value}`);
       }
     });
+
+    // Password visibility toggle
+    const passwordToggle = document.querySelector('.password-toggle');
+    const passwordInput = document.getElementById('password');
+
+    if (passwordToggle && passwordInput) {
+      passwordToggle.addEventListener('click', function() {
+        // Toggle password visibility
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          // You could also change the icon to a "hidden eye" here if you want
+        } else {
+          passwordInput.type = 'password';
+        }
+
+        // For visual feedback, add/remove a class to show which state we're in
+        passwordToggle.classList.toggle('showing');
+      });
+    }
   });
 </script>
 </body>

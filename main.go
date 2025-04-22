@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -3707,7 +3708,9 @@ func main() {
 		}
 		c.Next()
 	})
-
+	dbConn := userStore.GetDB()
+	savedCitiesHandler := handlers.NewSavedCitiesHandler(dbConn)
+	savedCitiesHandler.RegisterRoutes(router)
 	// Create auth handlers
 	authHandler := handlers.NewAuthHandler(userStore)
 	activityHandler := handlers.NewActivityHandler(apiKey)
@@ -3906,7 +3909,7 @@ func main() {
 	// Add a route that uses the standard HTTP handler for travel weather
 	router.GET("/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherHandler)))
 	router.GET("/api/travel-weather", gin.WrapH(http.HandlerFunc(handlers.TravelWeatherAPIHandler)))
-
+	http.HandleFunc("/api/reverse-geocode", handlers.HandleReverseGeocode)
 	router.POST("/signup", authHandler.PostSignup)
 	router.GET("/logout", authHandler.Logout)
 
@@ -4018,7 +4021,84 @@ func main() {
 		authGroup.GET("/profile", authHandler.GetProfile)
 		authGroup.POST("/profile", authHandler.PostProfile)
 		authGroup.GET("/compare", weatherHandler.GetCompare)
+
+		// Profile photo update handler
+		authGroup.POST("/profile/photo", func(c *gin.Context) {
+			// Get user ID from session
+			userID, exists := c.Get("user_id")
+			if !exists {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "User not logged in"})
+				return
+			}
+
+			// Get user details
+			userStore := c.MustGet("user_store").(models.UserStore)
+			user, err := userStore.GetUserByID(userID.(int))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user data"})
+				return
+			}
+
+			// Get the profile photo from form
+			profilePhoto := c.PostForm("profile_photo")
+
+			// Validate profile photo
+			validPhotos := map[string]bool{
+				"photo1.jpg":  true,
+				"photo2.jpg":  true,
+				"photo3.jpg":  true,
+				"photo4.jpg":  true,
+				"photo5.jpg":  true,
+				"default.jpg": true,
+			}
+
+			if !validPhotos[profilePhoto] {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile photo selection"})
+				return
+			}
+
+			user.ProfilePhoto = profilePhoto
+			user.UpdatedAt = time.Now()
+
+			err = userStore.UpdateUser(user)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile photo"})
+				return
+			}
+
+			// Return success
+			c.JSON(http.StatusOK, gin.H{"success": true, "message": "Profile photo updated successfully"})
+		})
 	}
+
+	// ============= CHAT FEATURE INTEGRATION START =============
+
+	dbConn = userStore.GetDB()
+	chatService := services.NewChatService(dbConn)
+
+	// Initialize upload handler for chat images
+	uploadDir := "./static"
+	uploadHandler := handlers.NewUploadHandler(uploadDir)
+	uploadHandler.RegisterRoutes(router)
+
+	// Initialize chat handler
+	chatHandler := handlers.NewChatHandler(chatService)
+	chatHandler.RegisterRoutes(router)
+
+	// Create the chat_images directory if it doesn't exist
+	os.MkdirAll(filepath.Join("static", "chat_images"), 0755)
+
+	// Start a goroutine to clean up inactive users
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			if err := chatService.RemoveInactiveUsers(); err != nil {
+				log.Printf("Error removing inactive users: %v", err)
+			}
+		}
+	}()
+
+	// ============= CHAT FEATURE INTEGRATION END =============
 
 	// Pre-initialize notification service
 	initializeNotificationService()

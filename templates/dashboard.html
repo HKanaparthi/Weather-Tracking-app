@@ -17,22 +17,19 @@
         </a>
     </div>
     <div class="header-right">
-        <div class="welcome-text">Welcome, <strong id="username">User</strong></div>
+        <div class="welcome-text">Welcome, <strong id="username">{{ if .User }}{{ .User.Username }}{{ else }}User{{ end }}</strong></div>
         <div class="nav-buttons">
             <a href="./compare" class="transparent-button">Compare</a>
             <a href="./historical-comparison" class="transparent-button">Historical</a>
             <a href="./travel-weather" class="transparent-button">Travel Plan</a>
             <a href="./activities" class="transparent-button">Activities</a>
-            <a href="./alerts" class="transparent-button premium-feature">Alerts</a>
 
-            <button id="darkModeToggle" class="transparent-button">
-                <i class="fas fa-moon"></i>
-            </button>
 
+            <!-- Profile dropdown -->
             <!-- Profile dropdown -->
             <div class="profile-dropdown">
                 <div class="profile-circle" id="profileCircle">
-                    <span id="profile-initial">U</span>
+                    <img id="profile-photo" src="{{ if .User.ProfilePhoto }}/static/profile_photos/{{ .User.ProfilePhoto }}{{ else }}/static/profile_photos/default.jpg{{ end }}" alt="Profile Photo" height="40px">
                 </div>
                 <div class="dropdown-content" id="dropdownContent">
                     <a href="./profile"><i class="fas fa-user"></i> Profile</a>
@@ -67,6 +64,48 @@
     <div id="loadingIndicator" class="loading">
         <div class="spinner"></div>
         <span>Getting premium weather data for your location...</span>
+    </div>
+
+    <!-- Weather Map Section -->
+    <div class="weather-map-container premium-feature-section">
+        <div class="map-header">
+            <h3>Weather Map </h3>
+            <div class="map-controls">
+                <div class="map-layer-select">
+                    <label for="mapLayer">Layer:</label>
+                    <select id="mapLayer" class="map-layer-dropdown">
+                        <option value="temp_new">Temperature</option>
+                        <option value="clouds_new">Clouds</option>
+                        <option value="precipitation_new">Precipitation</option>
+                        <option value="pressure_new">Pressure</option>
+                        <option value="wind_new">Wind</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="weatherMap" class="weather-map"></div>
+        <div class="map-legend">
+            <div class="legend-item temp-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #352A97, #0262E7, #0594F2, #17D1F0, #91F2EF, #FDFEBD, #FFDE56, #FF8B30, #F44C28, #A3180C);"></span>
+                <span class="legend-label">-40°C to 40°C</span>
+            </div>
+            <div class="legend-item clouds-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(150,150,150,0.6), rgba(100,100,100,0.8));"></span>
+                <span class="legend-label">0% to 100%</span>
+            </div>
+            <div class="legend-item precip-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, rgba(160,236,255,0.4), rgba(59,161,255,0.7), rgba(2,4,217,0.9));"></span>
+                <span class="legend-label">0mm to 10mm</span>
+            </div>
+            <div class="legend-item pressure-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #8186FF, #8BC3FE, #C6F68D, #FED976, #FA8B6D, #BF3838);"></span>
+                <span class="legend-label">950hPa to 1050hPa</span>
+            </div>
+            <div class="legend-item wind-legend">
+                <span class="legend-color" style="background: linear-gradient(to right, #3288bd, #66c2a5, #abdda4, #e6f598, #fee08b, #fdae61, #f46d43, #d53e4f);"></span>
+                <span class="legend-label">0m/s to 30m/s</span>
+            </div>
+        </div>
     </div>
 
     <!-- Weather Cards Section -->
@@ -198,44 +237,15 @@
         </div>
 
         <!-- Weather Info Cards (New) -->
-        <div class="weather-card info-card-large premium-feature">
-            <div class="weather-info-title">Tomorrow's Weather</div>
-            <div class="weather-info-content">
-                <div class="info-day-label">Sunny Day Ahead</div>
-                <div class="info-day-desc">Expect tomorrow to be next sunny day</div>
-                <div class="info-indicators">
-                    <span class="info-indicator active"></span>
-                    <span class="info-indicator"></span>
-                    <span class="info-indicator"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="weather-card info-card premium-feature">
-            <div class="weather-info-title">Pollen Outlook</div>
-            <div class="weather-info-content">
-                <div class="info-day-desc">Tree, grass pollen increasing tomorrow</div>
-                <div class="info-indicators">
-                    <span class="info-indicator"></span>
-                    <span class="info-indicator active"></span>
-                    <span class="info-indicator"></span>
-                </div>
-            </div>
-        </div>
 
         <div class="weather-card info-card premium-feature">
             <div class="weather-info-title">Air Pressure</div>
             <div class="weather-info-content">
-                <div class="info-day-value">1015 <span class="info-value-unit">hPa</span></div>
+                <div class="info-day-value">1019     <span class="info-value-unit">hPa</span></div>
             </div>
         </div>
 
-        <div class="weather-card info-card premium-feature">
-            <div class="weather-info-title">Visibility</div>
-            <div class="weather-info-content">
-                <div class="info-day-value">10 <span class="info-value-unit">mi</span></div>
-            </div>
-        </div>
+        <
 
         <!-- Hourly Forecast -->
         <div class="weather-card hourly-card">
@@ -256,7 +266,7 @@
         <div class="weather-card daily-card">
             <div class="daily-forecast-heading">
                 <span id="forecastDaysDisplay">7</span>-Day Forecast
-                <span class="premium-badge-small premium-feature"><i class="fas fa-crown"></i></span>
+
             </div>
             <div class="daily-forecast" id="dailyForecast">
                 <!-- Daily forecast will be populated by JS -->
@@ -266,7 +276,7 @@
 
     <!-- Weather Alerts Section (Premium Feature) -->
     <div class="weather-alerts-section premium-feature-section">
-        <h3>Weather Alerts <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
+        <h3>Weather Alerts </h3>
         <div class="alerts-container" id="alertsContainer">
             <div class="alert-item info">
                 <div class="alert-header">
@@ -290,7 +300,7 @@
                         <i class="fas fa-sun"></i>
                     </div>
                     <div class="sun-label">Sunrise</div>
-                    <div class="sun-time" id="sunriseLargeTime">6:53 AM</div>
+                    <div class="sun-time" id="sunriseLargeTime">6:43 AM</div>
                 </div>
                 <div class="progress-container">
                     <div class="day-progress">
@@ -302,50 +312,8 @@
                         <i class="fas fa-moon"></i>
                     </div>
                     <div class="sun-label">Sunset</div>
-                    <div class="sun-time" id="sunsetLargeTime">7:53 PM</div>
+                    <div class="sun-time" id="sunsetLargeTime">8:00 PM</div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Weather Map Section -->
-    <div class="weather-map-container premium-feature-section">
-        <div class="map-header">
-            <h3>Weather Map <span class="premium-badge-small"><i class="fas fa-crown"></i></span></h3>
-            <div class="map-controls">
-                <div class="map-layer-select">
-                    <label for="mapLayer">Layer:</label>
-                    <select id="mapLayer" class="map-layer-dropdown">
-                        <option value="temp_new">Temperature</option>
-                        <option value="clouds_new">Clouds</option>
-                        <option value="precipitation_new">Precipitation</option>
-                        <option value="pressure_new">Pressure</option>
-                        <option value="wind_new">Wind</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div id="weatherMap" class="weather-map"></div>
-        <div class="map-legend">
-            <div class="legend-item temp-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #352A97, #0262E7, #0594F2, #17D1F0, #91F2EF, #FDFEBD, #FFDE56, #FF8B30, #F44C28, #A3180C);"></span>
-                <span class="legend-label">-40°C to 40°C</span>
-            </div>
-            <div class="legend-item clouds-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(150,150,150,0.6), rgba(100,100,100,0.8));"></span>
-                <span class="legend-label">0% to 100%</span>
-            </div>
-            <div class="legend-item precip-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, rgba(160,236,255,0.4), rgba(59,161,255,0.7), rgba(2,4,217,0.9));"></span>
-                <span class="legend-label">0mm to 10mm</span>
-            </div>
-            <div class="legend-item pressure-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #8186FF, #8BC3FE, #C6F68D, #FED976, #FA8B6D, #BF3838);"></span>
-                <span class="legend-label">950hPa to 1050hPa</span>
-            </div>
-            <div class="legend-item wind-legend">
-                <span class="legend-color" style="background: linear-gradient(to right, #3288bd, #66c2a5, #abdda4, #e6f598, #fee08b, #fdae61, #f46d43, #d53e4f);"></span>
-                <span class="legend-label">0m/s to 30m/s</span>
             </div>
         </div>
     </div>
@@ -363,60 +331,19 @@
         </div>
     </div>
 
-    <!-- Weather Metrics Grid (New) -->
-    <div class="weather-metrics-grid premium-feature-section">
-        <div class="metrics-header">
-            <h3>Weather Details</h3>
-        </div>
-        <div class="metrics-container">
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-sun"></i></div>
-                <div class="metric-name">UV</div>
-                <div class="metric-value" id="metricUv">1</div>
-                <div class="metric-description">Very weak</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-temperature-low"></i></div>
-                <div class="metric-name">Feels like</div>
-                <div class="metric-value" id="metricFeelsLike">12°</div>
-                <div class="metric-description">Similar to actual</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-tint"></i></div>
-                <div class="metric-name">Humidity</div>
-                <div class="metric-value" id="metricHumidity">46%</div>
-                <div class="metric-description">Comfortable</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-wind"></i></div>
-                <div class="metric-name">Wind</div>
-                <div class="metric-value" id="metricWind">9 mph</div>
-                <div class="metric-description">N direction</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-compress-arrows-alt"></i></div>
-                <div class="metric-name">Pressure</div>
-                <div class="metric-value" id="metricPressure">1015</div>
-                <div class="metric-description">hPa</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon"><i class="fas fa-eye"></i></div>
-                <div class="metric-name">Visibility</div>
-                <div class="metric-value" id="metricVisibility">10</div>
-                <div class="metric-description">miles</div>
-            </div>
-        </div>
-    </div>
+
 </div>
 
-<script>
-    // Set default username if not already set
-    if (!localStorage.getItem('username')) {
-        localStorage.setItem('username', 'User');
-    }
-</script>
 <!-- Load Leaflet JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Load main dashboard JS with the fix -->
 <script src="static/js/dashboard.js"></script>
+<a href="/chats" class="chat-bubble">
+    <i class="fas fa-comments"></i>
+</a>
+
 </body>
+
+
 </html>
